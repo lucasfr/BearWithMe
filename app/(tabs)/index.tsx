@@ -269,11 +269,6 @@ export default function HomeScreen() {
     });
   }, []);
 
-  const sortGroup = useCallback((items: BwmPromise[], section: string) => {
-    if (!sortedSections.has(section)) return items;
-    return [...items].sort((a, b) => b.urgency - a.urgency);
-  }, [sortedSections]);
-
   const toggleFilter = useCallback((u: number) => {
     setUrgencyFilter(prev => {
       const next = new Set(prev);
@@ -283,16 +278,28 @@ export default function HomeScreen() {
   }, []);
 
   // When filters active, narrow each section; empty set = show all
+  // Sorting is applied per-section if that section is in sortedSections
   const filteredGroups = useMemo(() => {
-    if (urgencyFilter.size === 0) return groups;
-    const keep = (p: BwmPromise) => urgencyFilter.has(p.urgency);
+    const byUrgencyDesc = (a: BwmPromise, b: BwmPromise) => b.urgency - a.urgency;
+    const maybeSort = (items: BwmPromise[], key: string) =>
+      sortedSections.has(key) ? [...items].sort(byUrgencyDesc) : items;
+
+    const base = urgencyFilter.size === 0
+      ? groups
+      : {
+          overdue:  groups.overdue.filter(p => urgencyFilter.has(p.urgency)),
+          thisWeek: groups.thisWeek.filter(p => urgencyFilter.has(p.urgency)),
+          upcoming: groups.upcoming.filter(p => urgencyFilter.has(p.urgency)),
+          kept:     groups.kept.filter(p => urgencyFilter.has(p.urgency)),
+        };
+
     return {
-      overdue:  groups.overdue.filter(keep),
-      thisWeek: groups.thisWeek.filter(keep),
-      upcoming: groups.upcoming.filter(keep),
-      kept:     groups.kept.filter(keep),
+      overdue:  maybeSort(base.overdue,  'overdue'),
+      thisWeek: maybeSort(base.thisWeek, 'thisWeek'),
+      upcoming: maybeSort(base.upcoming, 'upcoming'),
+      kept:     maybeSort(base.kept,     'kept'),
     };
-  }, [groups, urgencyFilter]);
+  }, [groups, urgencyFilter, sortedSections]);
 
   const pushAdd   = useCallback(() => router.push('/modals/add-promise'), [router]);
   const pushGrade = useCallback((id: string) => router.push(`/modals/grade-promise?id=${id}`), [router]);
@@ -395,7 +402,7 @@ export default function HomeScreen() {
               <View style={styles.group}>
                 <SectionHeader title="Overdue" count={filteredGroups.overdue.length}
                   sorted={sortedSections.has('overdue')} onToggleSort={() => toggleSort('overdue')} />
-                {sortGroup(filteredGroups.overdue, 'overdue').map(p => (
+                {filteredGroups.overdue.map(p => (
                   <PromiseCard key={p.id} promise={p}
                     onPress={() => pushGrade(p.id)}
                     onLongPress={() => setActivePromise(p)} />
@@ -404,7 +411,7 @@ export default function HomeScreen() {
               <View style={styles.group}>
                 <SectionHeader title="This week" count={filteredGroups.thisWeek.length}
                   sorted={sortedSections.has('thisWeek')} onToggleSort={() => toggleSort('thisWeek')} />
-                {sortGroup(filteredGroups.thisWeek, 'thisWeek').map(p => (
+                {filteredGroups.thisWeek.map(p => (
                   <PromiseCard key={p.id} promise={p}
                     onPress={() => pushGrade(p.id)}
                     onLongPress={() => setActivePromise(p)} />
@@ -413,7 +420,7 @@ export default function HomeScreen() {
               <View style={styles.group}>
                 <SectionHeader title="Upcoming" count={filteredGroups.upcoming.length}
                   sorted={sortedSections.has('upcoming')} onToggleSort={() => toggleSort('upcoming')} />
-                {sortGroup(filteredGroups.upcoming, 'upcoming').map(p => (
+                {filteredGroups.upcoming.map(p => (
                   <PromiseCard key={p.id} promise={p}
                     onPress={() => pushGrade(p.id)}
                     onLongPress={() => setActivePromise(p)} />
@@ -422,7 +429,7 @@ export default function HomeScreen() {
               <View style={styles.group}>
                 <SectionHeader title="Recently kept" count={filteredGroups.kept.length}
                   sorted={sortedSections.has('kept')} onToggleSort={() => toggleSort('kept')} />
-                {sortGroup(filteredGroups.kept, 'kept').map(p => (
+                {filteredGroups.kept.map(p => (
                   <PromiseCard key={p.id} promise={p}
                     onPress={() => {}}
                     onLongPress={() => setActivePromise(p)} />
