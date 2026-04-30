@@ -1,14 +1,14 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback, useMemo } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, ScrollView,
-  StyleSheet, PanResponder, GestureResponderEvent,
+  StyleSheet, PanResponder, GestureResponderEvent, Modal,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { usePromises } from '../../storage/PromisesContext';
 import { generateId } from '../../utils/promise';
-import { Promise, UrgencyLevel, FuzzyDeadline } from '../../types/promise';
+import { Promise as BwmPromise, UrgencyLevel, FuzzyDeadline } from '../../types/promise';
 import { COLOURS } from '../../theme/colours';
 import { FONTS, SIZES, RADIUS } from '../../theme/typography';
 
@@ -58,36 +58,63 @@ function FlameBar({ value, onChange }: { value: UrgencyLevel; onChange: (v: Urge
 }
 
 export default function AddPromiseModal() {
-  const router = useRouter();
-  const { addPromise } = usePromises();
-  const insets = useSafeAreaInsets();
+  const router  = useRouter();
+  const { id }  = useLocalSearchParams<{ id?: string }>();
+  const insets  = useSafeAreaInsets();
+  const { addPromise, updatePromise, promises } = usePromises();
 
-  const [text, setText]                 = useState('');
-  const [urgency, setUrgency]           = useState<UrgencyLevel>(1);
-  const [toWhom, setToWhom]             = useState('');
-  const [customWho, setCustomWho]       = useState('');
-  const [fuzzy, setFuzzy]               = useState<FuzzyDeadline>('this-week');
-  const [specificDate, setSpecificDate] = useState('');
-  const [showDate, setShowDate]         = useState(false);
-  const [context, setContext]           = useState('');
+  // If editing, find the existing promise
+  const existing = useMemo(
+    () => (id ? promises.find(p => p.id === id) ?? null : null),
+    [id, promises],
+  );
+  const isEditing = !!existing;
 
-  const handleSubmit = async () => {
+  const [text, setText]                 = useState(existing?.text ?? '');
+  const [urgency, setUrgency]           = useState<UrgencyLevel>(existing?.urgency ?? 1);
+  const [toWhom, setToWhom]             = useState(
+    existing && ['myself', 'team'].includes(existing.toWhom) ? existing.toWhom : ''
+  );
+  const [customWho, setCustomWho]       = useState(
+    existing && !['myself', 'team'].includes(existing.toWhom) ? existing.toWhom : ''
+  );
+  const [fuzzy, setFuzzy]               = useState<FuzzyDeadline>(
+    existing?.fuzzyDeadline === 'specific' ? 'this-week' : (existing?.fuzzyDeadline ?? 'this-week')
+  );
+  const [specificDate, setSpecificDate] = useState(existing?.specificDate ?? '');
+  const [showDate, setShowDate]         = useState(existing?.fuzzyDeadline === 'specific');
+  const [context, setContext]           = useState(existing?.context ?? '');
+
+  const handleSubmit = useCallback(async () => {
     if (!text.trim()) return;
     const who = toWhom || customWho.trim() || 'myself';
-    const p: Promise = {
-      id: generateId(),
-      text: text.trim(),
-      urgency,
-      toWhom: who,
-      fuzzyDeadline: showDate ? 'specific' : fuzzy,
-      specificDate: showDate ? specificDate : undefined,
-      context: context.trim() || undefined,
-      status: 'pending',
-      createdAt: new Date().toISOString(),
-    };
-    await addPromise(p);
+
+    if (isEditing && existing) {
+      await updatePromise({
+        ...existing,
+        text: text.trim(),
+        urgency,
+        toWhom: who,
+        fuzzyDeadline: showDate ? 'specific' : fuzzy,
+        specificDate: showDate ? specificDate : undefined,
+        context: context.trim() || undefined,
+      });
+    } else {
+      const p: BwmPromise = {
+        id: generateId(),
+        text: text.trim(),
+        urgency,
+        toWhom: who,
+        fuzzyDeadline: showDate ? 'specific' : fuzzy,
+        specificDate: showDate ? specificDate : undefined,
+        context: context.trim() || undefined,
+        status: 'pending',
+        createdAt: new Date().toISOString(),
+      };
+      await addPromise(p);
+    }
     router.back();
-  };
+  }, [text, urgency, toWhom, customWho, fuzzy, specificDate, showDate, context, isEditing, existing]);
 
   const WHEN_OPTIONS: { key: FuzzyDeadline; label: string }[] = [
     { key: 'none',       label: 'no rush'    },
@@ -102,7 +129,9 @@ export default function AddPromiseModal() {
 
       <BlurView intensity={60} tint="light" style={[styles.sheet, { paddingBottom: insets.bottom + 20 }]}>
         <View style={styles.handle} />
-        <Text style={styles.title}>I promise to…</Text>
+        <Text style={styles.title}>
+          {isEditing ? 'Edit promise' : 'I promise to…'}
+        </Text>
 
         <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
 
@@ -115,6 +144,7 @@ export default function AddPromiseModal() {
             value={text}
             onChangeText={setText}
             multiline
+            autoFocus={!isEditing}
           />
 
           <Text style={styles.label}>Urgency</Text>
@@ -192,10 +222,14 @@ export default function AddPromiseModal() {
               <Text style={styles.cancelText}>Cancel</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit}>
-              <Text style={styles.submitText}>
-                I promise, 🐻{' '}
-                <Text style={styles.submitTextItalic}>with me!</Text>
-              </Text>
+              {isEditing ? (
+                <Text style={styles.submitText}>Save changes</Text>
+              ) : (
+                <Text style={styles.submitText}>
+                  I promise, 🐻{' '}
+                  <Text style={styles.submitTextItalic}>with me!</Text>
+                </Text>
+              )}
             </TouchableOpacity>
           </View>
 
@@ -205,9 +239,8 @@ export default function AddPromiseModal() {
   );
 }
 
-const GLASS_BG = 'rgba(255,255,255,0.72)';
-const CHIP_BG  = 'rgba(255,255,255,0.60)';
-// Selected state — warm amber glass, clearly active but still transparent
+const GLASS_BG       = 'rgba(255,255,255,0.72)';
+const CHIP_BG        = 'rgba(255,255,255,0.60)';
 const CHIP_ACTIVE_BG = 'rgba(166,123,91,0.28)';
 
 const inputShadow = {
@@ -227,7 +260,7 @@ const chipShadow = {
 };
 
 const styles = StyleSheet.create({
-  overlay: { flex: 1, justifyContent: 'flex-end' },
+  overlay:     { flex: 1, justifyContent: 'flex-end' },
   dismissArea: { flex: 1 },
 
   sheet: {
@@ -253,17 +286,14 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.body, fontSize: SIZES.label,
     textTransform: 'none', letterSpacing: 0, color: COLOURS.textMuted,
   },
-
   glassInput: {
-    backgroundColor: GLASS_BG,
-    borderRadius: 16,
+    backgroundColor: GLASS_BG, borderRadius: 16,
     padding: 14, fontFamily: FONTS.body, fontSize: SIZES.body,
     color: COLOURS.text, marginBottom: 18,
     ...inputShadow,
   },
-
-  flameRow: { flexDirection: 'row', justifyContent: 'center', gap: 4, marginBottom: 18 },
-  flamePip: { padding: 8 },
+  flameRow:   { flexDirection: 'row', justifyContent: 'center', gap: 4, marginBottom: 18 },
+  flamePip:   { padding: 8 },
   flameEmoji: { fontSize: SIZES.emoji, lineHeight: SIZES.emoji + 8 },
   flameFaded: { opacity: 0.22 },
 
@@ -273,9 +303,8 @@ const styles = StyleSheet.create({
     backgroundColor: CHIP_BG, borderRadius: RADIUS.pill,
     ...chipShadow,
   },
-  // Warm amber glass — same family as the app, clearly selected, still transparent
-  chipActive: { backgroundColor: CHIP_ACTIVE_BG },
-  chipText: { fontFamily: FONTS.bodyBold, fontSize: SIZES.bodySmall, color: COLOURS.text },
+  chipActive:     { backgroundColor: CHIP_ACTIVE_BG },
+  chipText:       { fontFamily: FONTS.bodyBold, fontSize: SIZES.bodySmall, color: COLOURS.text },
   chipTextActive: { color: COLOURS.coffee1 },
 
   whoInput: {
@@ -291,7 +320,7 @@ const styles = StyleSheet.create({
     backgroundColor: CHIP_BG, borderRadius: RADIUS.pill,
     ...chipShadow,
   },
-  whenChipText: { fontFamily: FONTS.bodyBold, fontSize: 13, color: COLOURS.text },
+  whenChipText: { fontFamily: FONTS.bodyBold, fontSize: SIZES.bodySmall, color: COLOURS.text },
 
   actions: { flexDirection: 'row', gap: 10, marginTop: 6, marginBottom: 4 },
   cancelBtn: {
@@ -306,6 +335,6 @@ const styles = StyleSheet.create({
     shadowColor: '#6F4E37', shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.22, shadowRadius: 18, elevation: 8,
   },
-  submitText: { fontFamily: FONTS.bodyBold, fontSize: SIZES.body, color: COLOURS.coffee1 },
+  submitText:       { fontFamily: FONTS.bodyBold, fontSize: SIZES.body, color: COLOURS.coffee1 },
   submitTextItalic: { fontFamily: FONTS.headingItalic, fontSize: SIZES.body, color: COLOURS.coffee1 },
 });

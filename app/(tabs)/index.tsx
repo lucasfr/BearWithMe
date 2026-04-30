@@ -1,9 +1,9 @@
 import {
-  View, Text, ScrollView, StyleSheet, TouchableOpacity, Platform,
+  View, Text, ScrollView, StyleSheet, TouchableOpacity, Platform, Modal,
 } from 'react-native';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import Svg, { Circle, Polyline, Path, Line, Rect, Defs, Pattern, RadialGradient, Stop } from 'react-native-svg';
+import Svg, { Circle, Polyline, Path, Line, Rect, Defs, Pattern } from 'react-native-svg';
 import { useRouter } from 'expo-router';
 import { BlurView } from 'expo-blur';
 import { usePromises } from '../../storage/PromisesContext';
@@ -46,7 +46,7 @@ const EditIcon = ({ color }: { color: string }) => (
   </Svg>
 );
 
-// ── Helpers ────────────────────────────────────────────────────────────────
+// ── Pure helpers ───────────────────────────────────────────────────────────
 function urgencyStripeColor(urgency: number, status: string): string {
   if (status === 'overdue') return COLOURS.alert;
   if (status === 'kept')    return COLOURS.done;
@@ -57,8 +57,85 @@ function urgencyStripeColor(urgency: number, status: string): string {
 }
 const FLAME_MAP: Record<number, string> = { 0: '🔥', 1: '🔥', 2: '🔥🔥', 3: '🔥🔥🔥' };
 
-// ── PromiseCard ────────────────────────────────────────────────────────────
-function PromiseCard({ promise, onPress }: { promise: BwmPromise; onPress: () => void }) {
+// ── Card action sheet ──────────────────────────────────────────────────────
+function CardActionSheet({
+  promise, onClose, onMarkDone, onEdit, onDelete,
+}: {
+  promise: BwmPromise;
+  onClose:    () => void;
+  onMarkDone: () => void;
+  onEdit:     () => void;
+  onDelete:   () => void;
+}) {
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  return (
+    <Modal transparent animationType="slide" onRequestClose={onClose}>
+      <TouchableOpacity style={sheet.backdrop} activeOpacity={1} onPress={onClose} />
+      <View style={sheet.container}>
+        <View style={sheet.handle} />
+        <Text style={sheet.promiseText} numberOfLines={2}>{promise.text}</Text>
+
+        {confirmDelete ? (
+          <>
+            <Text style={sheet.confirmText}>
+              Delete this promise? This can't be undone.
+            </Text>
+            <View style={sheet.btnRow}>
+              <TouchableOpacity style={sheet.cancelBtn} onPress={() => setConfirmDelete(false)}>
+                <Text style={sheet.cancelBtnText}>Keep it</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={sheet.deleteConfirmBtn} onPress={onDelete}>
+                <Text style={sheet.deleteConfirmText}>Yes, delete</Text>
+              </TouchableOpacity>
+            </View>
+          </>
+        ) : (
+          <>
+            {promise.status !== 'kept' && (
+              <TouchableOpacity style={sheet.actionBtn} onPress={onMarkDone}>
+                <Text style={sheet.actionIcon}>✓</Text>
+                <View>
+                  <Text style={sheet.actionLabel}>Mark as done</Text>
+                  <Text style={sheet.actionSub}>Grade how it went</Text>
+                </View>
+              </TouchableOpacity>
+            )}
+
+            <TouchableOpacity style={sheet.actionBtn} onPress={onEdit}>
+              <Text style={sheet.actionIcon}>✏️</Text>
+              <View>
+                <Text style={sheet.actionLabel}>Edit promise</Text>
+                <Text style={sheet.actionSub}>Change text, urgency or deadline</Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={[sheet.actionBtn, sheet.actionBtnLast]} onPress={() => setConfirmDelete(true)}>
+              <Text style={sheet.actionIcon}>🗑</Text>
+              <View>
+                <Text style={[sheet.actionLabel, sheet.deleteLabel]}>Delete</Text>
+                <Text style={sheet.actionSub}>Remove permanently</Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={sheet.closeBtn} onPress={onClose}>
+              <Text style={sheet.closeBtnText}>Cancel</Text>
+            </TouchableOpacity>
+          </>
+        )}
+      </View>
+    </Modal>
+  );
+}
+
+// ── Promise card ───────────────────────────────────────────────────────────
+function PromiseCard({
+  promise, onPress, onLongPress,
+}: {
+  promise: BwmPromise;
+  onPress:     () => void;
+  onLongPress: () => void;
+}) {
   const status      = computeStatus(promise);
   const isKept      = status === 'kept';
   const stripeColor = urgencyStripeColor(promise.urgency, status);
@@ -87,7 +164,13 @@ function PromiseCard({ promise, onPress }: { promise: BwmPromise; onPress: () =>
   const heartScore = promise.scoreHowFelt ?? 0;
 
   return (
-    <TouchableOpacity style={[styles.card, isKept && styles.cardDone]} onPress={onPress} activeOpacity={0.75}>
+    <TouchableOpacity
+      style={[styles.card, isKept && styles.cardDone]}
+      onPress={onPress}
+      onLongPress={onLongPress}
+      delayLongPress={350}
+      activeOpacity={0.75}
+    >
       <View style={[styles.cardStripe, { backgroundColor: stripeColor }]} />
       <View style={styles.cardInner}>
         <View style={styles.cardTop}>
@@ -120,11 +203,9 @@ function PromiseCard({ promise, onPress }: { promise: BwmPromise; onPress: () =>
               )}
             </>
           )}
-
           {isKept && (
             <>
               {!!keptLabel && <Text style={styles.keptLabel}>{keptLabel}</Text>}
-              {/* Bears + hearts side by side, pushed to the right */}
               <View style={styles.likertGroup}>
                 <View style={styles.likertRow}>
                   {[1,2,3,4,5].map(n => (
@@ -145,7 +226,7 @@ function PromiseCard({ promise, onPress }: { promise: BwmPromise; onPress: () =>
   );
 }
 
-// ── SectionHeader ──────────────────────────────────────────────────────────
+// ── Section header ─────────────────────────────────────────────────────────
 function SectionHeader({ title, count }: { title: string; count: number }) {
   if (count === 0) return null;
   return (
@@ -158,31 +239,52 @@ function SectionHeader({ title, count }: { title: string; count: number }) {
   );
 }
 
-// ── HomeScreen ─────────────────────────────────────────────────────────────
+// ── Home screen ────────────────────────────────────────────────────────────
 export default function HomeScreen() {
-  const { promises } = usePromises();
-  const router       = useRouter();
-  const insets       = useSafeAreaInsets();
+  const { promises, deletePromise } = usePromises();
+  const router  = useRouter();
+  const insets  = useSafeAreaInsets();
 
   const groups       = useMemo(() => groupPromises(promises), [promises]);
   const pendingCount = useMemo(() => promises.filter(p => p.status === 'pending').length, [promises]);
   const overdueCount = groups.overdue.length;
   const hasPromises  = promises.length > 0;
+  const fabBottom    = useMemo(() => 60 + insets.bottom + 12, [insets.bottom]);
 
-  // FAB sits just above the tab bar — tab bar height is 60 + bottom inset
-  const fabBottom = useMemo(() => 60 + insets.bottom + 12, [insets.bottom]);
+  const [activePromise, setActivePromise] = useState<BwmPromise | null>(null);
 
-  const pushGrade = useCallback((id: string) => {
-    router.push(`/modals/grade-promise?id=${id}`);
-  }, [router]);
-  const pushAdd = useCallback(() => {
-    router.push('/modals/add-promise');
-  }, [router]);
+  const pushAdd   = useCallback(() => router.push('/modals/add-promise'), [router]);
+
+  const handleMarkDone = useCallback(() => {
+    if (!activePromise) return;
+    const id = activePromise.id;
+    setActivePromise(null);
+    // Small delay so sheet closes before modal opens
+    setTimeout(() => router.push(`/modals/grade-promise?id=${id}`), 50);
+  }, [activePromise, router]);
+
+  const handleEdit = useCallback(() => {
+    if (!activePromise) return;
+    const id = activePromise.id;
+    setActivePromise(null);
+    setTimeout(() => router.push(`/modals/add-promise?id=${id}`), 50);
+  }, [activePromise, router]);
+
+  const handleDelete = useCallback(() => {
+    if (!activePromise) return;
+    deletePromise(activePromise.id);
+    setActivePromise(null);
+  }, [activePromise, deletePromise]);
+
+  const pushGrade = useCallback(
+    (id: string) => router.push(`/modals/grade-promise?id=${id}`),
+    [router],
+  );
 
   return (
     <View style={styles.root}>
 
-      {/* Dot-grid background — absolutely positioned behind everything */}
+      {/* Dot-grid background */}
       <View style={StyleSheet.absoluteFill} pointerEvents="none">
         <Svg width="100%" height="100%" style={StyleSheet.absoluteFill}>
           <Defs>
@@ -198,7 +300,6 @@ export default function HomeScreen() {
 
         {/* Header */}
         <BlurView intensity={60} tint="light" style={styles.header}>
-          {/* Logo — 🐻 stacked above ☑ ~~with me~~ */}
           <View style={styles.logoBlock}>
             <Text style={styles.bear}>🐻</Text>
             <View style={styles.titleSub}>
@@ -208,16 +309,12 @@ export default function HomeScreen() {
               <Text style={styles.withMe}>with me</Text>
             </View>
           </View>
-
-          {/* Centre */}
           <View style={styles.headerCenter}>
             <Text style={styles.headerDate}>
               {new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long' })}
             </Text>
             <Text style={styles.headerSub}>{pendingCount} promises · {overdueCount} overdue</Text>
           </View>
-
-          {/* Right icon buttons */}
           <View style={styles.headerRight}>
             <TouchableOpacity style={styles.iconBtn}>
               <SearchIcon color={COLOURS.coffee1} />
@@ -229,11 +326,7 @@ export default function HomeScreen() {
         </BlurView>
 
         {/* List */}
-        <ScrollView
-          style={styles.main}
-          contentContainerStyle={styles.mainContent}
-          showsVerticalScrollIndicator={false}
-        >
+        <ScrollView style={styles.main} contentContainerStyle={styles.mainContent} showsVerticalScrollIndicator={false}>
           {!hasPromises ? (
             <View style={styles.emptyState}>
               <Text style={styles.emptyBear}>🐻</Text>
@@ -244,7 +337,6 @@ export default function HomeScreen() {
             </View>
           ) : (
             <>
-              {/* Urgency legend */}
               <View style={styles.urgencyLegend}>
                 <View style={styles.legendItem}><Text style={[styles.legendFlame, styles.legendFlameFaded]}>🔥</Text><Text style={styles.legendText}> none</Text></View>
                 <Text style={styles.legendSep}>·</Text>
@@ -257,19 +349,35 @@ export default function HomeScreen() {
 
               <View style={styles.group}>
                 <SectionHeader title="Overdue" count={groups.overdue.length} />
-                {groups.overdue.map(p => <PromiseCard key={p.id} promise={p} onPress={() => pushGrade(p.id)} />)}
+                {groups.overdue.map(p => (
+                  <PromiseCard key={p.id} promise={p}
+                    onPress={() => pushGrade(p.id)}
+                    onLongPress={() => setActivePromise(p)} />
+                ))}
               </View>
               <View style={styles.group}>
                 <SectionHeader title="This week" count={groups.thisWeek.length} />
-                {groups.thisWeek.map(p => <PromiseCard key={p.id} promise={p} onPress={() => pushGrade(p.id)} />)}
+                {groups.thisWeek.map(p => (
+                  <PromiseCard key={p.id} promise={p}
+                    onPress={() => pushGrade(p.id)}
+                    onLongPress={() => setActivePromise(p)} />
+                ))}
               </View>
               <View style={styles.group}>
                 <SectionHeader title="Upcoming" count={groups.upcoming.length} />
-                {groups.upcoming.map(p => <PromiseCard key={p.id} promise={p} onPress={() => pushGrade(p.id)} />)}
+                {groups.upcoming.map(p => (
+                  <PromiseCard key={p.id} promise={p}
+                    onPress={() => pushGrade(p.id)}
+                    onLongPress={() => setActivePromise(p)} />
+                ))}
               </View>
               <View style={styles.group}>
                 <SectionHeader title="Recently kept" count={groups.kept.length} />
-                {groups.kept.map(p => <PromiseCard key={p.id} promise={p} onPress={() => {}} />)}
+                {groups.kept.map(p => (
+                  <PromiseCard key={p.id} promise={p}
+                    onPress={() => {}}
+                    onLongPress={() => setActivePromise(p)} />
+                ))}
               </View>
             </>
           )}
@@ -277,7 +385,18 @@ export default function HomeScreen() {
 
       </SafeAreaView>
 
-      {/* FAB — outside SafeAreaView, positioned above tab bar */}
+      {/* Action sheet */}
+      {activePromise && (
+        <CardActionSheet
+          promise={activePromise}
+          onClose={() => setActivePromise(null)}
+          onMarkDone={handleMarkDone}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
+      )}
+
+      {/* FAB */}
       <TouchableOpacity style={[styles.fab, { bottom: fabBottom }]} onPress={pushAdd} activeOpacity={0.85}>
         <Text style={styles.fabPlus}>+</Text>
       </TouchableOpacity>
@@ -372,12 +491,11 @@ const styles = StyleSheet.create({
   cardMetaItem:        { flexDirection: 'row', alignItems: 'center', gap: 4 },
   cardMetaText:        { fontFamily: FONTS.body, fontSize: SIZES.bodySmall, color: COLOURS.textMuted },
   cardDeadlineOverdue: { color: COLOURS.alert, fontWeight: '600', fontSize: SIZES.bodySmall },
-
-  keptLabel:   { fontFamily: FONTS.body, fontSize: SIZES.bodySmall, fontWeight: '600', color: COLOURS.done },
-  likertGroup: { flexDirection: 'column', gap: 2, marginLeft: 'auto' },
-  likertRow:   { flexDirection: 'row', gap: 2 },
-  likertEmoji: { fontSize: SIZES.bodySmall },
-  likertFaded: { opacity: 0.22 },
+  keptLabel:           { fontFamily: FONTS.body, fontSize: SIZES.bodySmall, fontWeight: '600', color: COLOURS.done },
+  likertGroup:         { flexDirection: 'column', gap: 2, marginLeft: 'auto' },
+  likertRow:           { flexDirection: 'row', gap: 2 },
+  likertEmoji:         { fontSize: SIZES.bodySmall },
+  likertFaded:         { opacity: 0.22 },
 
   fab: {
     position: 'absolute', right: 16,
@@ -387,4 +505,52 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.45, shadowRadius: 18, elevation: 6,
   },
   fabPlus: { color: '#fff', fontSize: 30, lineHeight: 34 },
+});
+
+// ── Action sheet styles ────────────────────────────────────────────────────
+const sheet = StyleSheet.create({
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(44,26,14,0.45)',
+  },
+  container: {
+    position: 'absolute', bottom: 0, left: 0, right: 0,
+    backgroundColor: COLOURS.drawerBg,
+    borderTopLeftRadius: 24, borderTopRightRadius: 24,
+    borderTopWidth: 1, borderTopColor: COLOURS.glassBorder,
+    paddingHorizontal: 20, paddingTop: 12, paddingBottom: 40,
+    shadowColor: '#2C1A0E', shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.18, shadowRadius: 24, elevation: 12,
+  },
+  handle: {
+    width: 38, height: 4, backgroundColor: 'rgba(111,78,55,0.22)',
+    borderRadius: 99, alignSelf: 'center', marginBottom: 16,
+  },
+  promiseText: {
+    fontFamily: FONTS.bodyItalic, fontSize: SIZES.bodySmall,
+    color: COLOURS.textMuted, marginBottom: 8,
+    paddingHorizontal: 4, lineHeight: 22,
+  },
+  actionBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 16,
+    paddingVertical: 16,
+    borderBottomWidth: 1, borderBottomColor: COLOURS.glassBorder,
+  },
+  actionBtnLast: { borderBottomWidth: 0 },
+  actionIcon:    { fontSize: 22, width: 32, textAlign: 'center' },
+  actionLabel:   { fontFamily: FONTS.bodyBold, fontSize: SIZES.body, color: COLOURS.text },
+  deleteLabel:   { color: COLOURS.alert },
+  actionSub:     { fontFamily: FONTS.body, fontSize: SIZES.label, color: COLOURS.textMuted, marginTop: 2 },
+  closeBtn: {
+    marginTop: 14, paddingVertical: 15,
+    backgroundColor: 'rgba(255,255,255,0.60)',
+    borderRadius: RADIUS.pill, alignItems: 'center',
+  },
+  closeBtnText:      { fontFamily: FONTS.bodyBold, fontSize: SIZES.body, color: COLOURS.textMuted },
+  confirmText:       { fontFamily: FONTS.body, fontSize: SIZES.body, color: COLOURS.text, lineHeight: 26, marginBottom: 20 },
+  btnRow:            { flexDirection: 'row', gap: 12 },
+  cancelBtn:         { flex: 1, paddingVertical: 15, alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.60)', borderRadius: RADIUS.pill },
+  cancelBtnText:     { fontFamily: FONTS.bodyBold, fontSize: SIZES.body, color: COLOURS.textMuted },
+  deleteConfirmBtn:  { flex: 1, paddingVertical: 15, alignItems: 'center', backgroundColor: COLOURS.alert, borderRadius: RADIUS.pill },
+  deleteConfirmText: { fontFamily: FONTS.bodyBold, fontSize: SIZES.body, color: '#fff' },
 });
