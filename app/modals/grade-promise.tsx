@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet,
+  PanResponder, GestureResponderEvent,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -9,9 +10,8 @@ import { usePromises } from '../../storage/PromisesContext';
 import { COLOURS } from '../../theme/colours';
 import { FONTS, SIZES, RADIUS } from '../../theme/typography';
 
-const GLASS_BG       = 'rgba(255,255,255,0.72)';
-const CHIP_BG        = 'rgba(255,255,255,0.60)';
-const CHIP_ACTIVE_BG = 'rgba(166,123,91,0.28)';
+const GLASS_BG = 'rgba(255,255,255,0.72)';
+const CHIP_BG  = 'rgba(255,255,255,0.60)';
 
 const chipShadow = {
   shadowColor: '#6F4E37',
@@ -21,6 +21,69 @@ const chipShadow = {
   elevation: 4,
 };
 
+// ── LikertBar — tap or drag to set 1–5 ────────────────────────────────────
+function LikertBar({
+  value,
+  onChange,
+  filledEmoji,
+  emptyEmoji,
+}: {
+  value:       number;
+  onChange:    (v: number) => void;
+  filledEmoji: string;
+  emptyEmoji?: string;   // if omitted, uses filledEmoji with reduced opacity
+}) {
+  const rowRef = useRef<View>(null);
+  const rowX   = useRef(0);
+  const rowW   = useRef(0);
+
+  const getScore = (pageX: number): number => {
+    const rel = Math.max(0, Math.min(1, (pageX - rowX.current) / rowW.current));
+    return Math.min(5, Math.max(1, Math.ceil(rel * 5)));
+  };
+
+  const pan = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder:  () => true,
+      onPanResponderGrant: (e: GestureResponderEvent) => onChange(getScore(e.nativeEvent.pageX)),
+      onPanResponderMove:  (e: GestureResponderEvent) => onChange(getScore(e.nativeEvent.pageX)),
+    })
+  ).current;
+
+  return (
+    <View
+      ref={rowRef}
+      onLayout={e => {
+        rowW.current = e.nativeEvent.layout.width;
+        rowRef.current?.measure((_x, _y, _w, _h, pageX) => { rowX.current = pageX; });
+      }}
+      {...pan.panHandlers}
+      style={styles.pipsRow}
+    >
+      {[1, 2, 3, 4, 5].map(n => (
+        <TouchableOpacity
+          key={n}
+          style={styles.pipBtn}
+          onPress={() => onChange(n)}
+          activeOpacity={0.7}
+        >
+          {emptyEmoji ? (
+            <Text style={styles.pip}>
+              {n <= value ? filledEmoji : emptyEmoji}
+            </Text>
+          ) : (
+            <Text style={[styles.pip, n > value && styles.pipFaded]}>
+              {filledEmoji}
+            </Text>
+          )}
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+}
+
+// ── Modal ──────────────────────────────────────────────────────────────────
 export default function GradePromiseModal() {
   const router  = useRouter();
   const { id }  = useLocalSearchParams<{ id: string }>();
@@ -47,7 +110,7 @@ export default function GradePromiseModal() {
     setCelebrated(true);
   };
 
-  // ── Celebration screen ───────────────────────────────────────────────────
+  // ── Celebration ──────────────────────────────────────────────────────────
   if (celebrated) {
     return (
       <View style={styles.celebrate}>
@@ -62,7 +125,7 @@ export default function GradePromiseModal() {
             <Text style={styles.scoreLabel}>how well</Text>
             <View style={styles.scorePips}>
               {[1,2,3,4,5].map(n => (
-                <Text key={n} style={{ fontSize: SIZES.body, opacity: n <= bearScore ? 1 : 0.22 }}>🐻</Text>
+                <Text key={n} style={[styles.scorePip, n > bearScore && styles.pipFaded]}>🐻</Text>
               ))}
             </View>
           </View>
@@ -70,8 +133,8 @@ export default function GradePromiseModal() {
             <Text style={styles.scoreLabel}>how it felt</Text>
             <View style={styles.scorePips}>
               {[1,2,3,4,5].map(n => (
-                <Text key={n} style={{ fontSize: SIZES.body, opacity: n <= heartScore ? 1 : 0.22 }}>
-                  {n <= heartScore ? '❤️' : '🤍'}
+                <Text key={n} style={styles.scorePip}>
+                  {n <= heartScore ? '❤️' : <Text style={styles.pipFaded}>🤍</Text>}
                 </Text>
               ))}
             </View>
@@ -84,53 +147,42 @@ export default function GradePromiseModal() {
     );
   }
 
-  // ── Grading sheet ────────────────────────────────────────────────────────
+  // ── Grading sheet ─────────────────────────────────────────────────────────
   return (
     <View style={styles.overlay}>
       <TouchableOpacity style={styles.dismissArea} activeOpacity={1} onPress={() => router.back()} />
 
       <BlurView intensity={60} tint="light" style={[styles.sheet, { paddingBottom: insets.bottom + 20 }]}>
         <View style={styles.handle} />
-        <Text style={styles.title}>
-          How did it go?
-        </Text>
+        <Text style={styles.title}>How did it go?</Text>
 
         <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
 
-          {/* Promise recap card */}
+          {/* Recap */}
           <View style={styles.recap}>
             <Text style={styles.recapLabel}>✓ marking as kept</Text>
             <Text style={styles.recapTitle}>{promise.text}</Text>
           </View>
 
-          {/* How well — bears */}
+          {/* Bears — how well */}
           <Text style={styles.label}>How well did you keep it?</Text>
           <View style={styles.scaleBlock}>
-            <View style={styles.pipsRow}>
-              {[1,2,3,4,5].map(n => (
-                <TouchableOpacity key={n} style={styles.pipBtn} onPress={() => setBearScore(n)}>
-                  <Text style={[styles.pip, n > bearScore && styles.pipFaded]}>🐻</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
+            <LikertBar value={bearScore} onChange={setBearScore} filledEmoji="🐻" />
             <View style={styles.hints}>
               <Text style={styles.hint}>barely</Text>
               <Text style={styles.hint}>fully</Text>
             </View>
           </View>
 
-          {/* How it felt — hearts */}
+          {/* Hearts — how it felt */}
           <Text style={styles.label}>How did it feel?</Text>
           <View style={styles.scaleBlock}>
-            <View style={styles.pipsRow}>
-              {[1,2,3,4,5].map(n => (
-                <TouchableOpacity key={n} style={styles.pipBtn} onPress={() => setHeartScore(n)}>
-                  <Text style={[styles.pip, n > heartScore && styles.pipFaded]}>
-                    {n <= heartScore ? '❤️' : '🤍'}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
+            <LikertBar
+              value={heartScore}
+              onChange={setHeartScore}
+              filledEmoji="❤️"
+              emptyEmoji="🤍"
+            />
             <View style={styles.hints}>
               <Text style={styles.hint}>relieved</Text>
               <Text style={styles.hint}>proud</Text>
@@ -169,8 +221,8 @@ export default function GradePromiseModal() {
   );
 }
 
+// ── Styles ─────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  // ── Sheet ──
   overlay:     { flex: 1, justifyContent: 'flex-end' },
   dismissArea: { flex: 1 },
   sheet: {
@@ -188,10 +240,8 @@ const styles = StyleSheet.create({
     color: COLOURS.text, marginBottom: 20,
   },
 
-  // ── Recap card ──
   recap: {
-    backgroundColor: GLASS_BG,
-    borderRadius: RADIUS.card,
+    backgroundColor: GLASS_BG, borderRadius: RADIUS.card,
     padding: 14, marginBottom: 22,
     borderLeftWidth: 5, borderLeftColor: COLOURS.done,
     shadowColor: '#6F4E37', shadowOffset: { width: 0, height: 2 },
@@ -207,7 +257,6 @@ const styles = StyleSheet.create({
     fontWeight: '500', color: COLOURS.text, lineHeight: 26,
   },
 
-  // ── Labels ──
   label: {
     fontFamily: FONTS.bodyBold, fontSize: SIZES.label,
     letterSpacing: 0.8, textTransform: 'uppercase', color: COLOURS.text,
@@ -218,19 +267,17 @@ const styles = StyleSheet.create({
     textTransform: 'none', letterSpacing: 0, color: COLOURS.textMuted,
   },
 
-  // ── Likert scales ──
   scaleBlock: { marginBottom: 20 },
-  pipsRow:    { flexDirection: 'row', justifyContent: 'center', gap: 6 },
-  pipBtn:     { padding: 6 },
+  pipsRow:    { flexDirection: 'row', justifyContent: 'space-between' },
+  pipBtn:     { flex: 1, alignItems: 'center', paddingVertical: 8 },
   pip:        { fontSize: SIZES.emoji, lineHeight: SIZES.emoji + 8 },
   pipFaded:   { opacity: 0.22 },
   hints: {
     flexDirection: 'row', justifyContent: 'space-between',
-    marginTop: 6, paddingHorizontal: 8,
+    marginTop: 4, paddingHorizontal: 4,
   },
   hint: { fontFamily: FONTS.body, fontSize: SIZES.label, color: COLOURS.textDim },
 
-  // ── Reflection input ──
   glassInput: {
     backgroundColor: GLASS_BG, borderRadius: 16,
     padding: 14, fontFamily: FONTS.body, fontSize: SIZES.body,
@@ -239,14 +286,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.10, shadowRadius: 8, elevation: 3,
   },
 
-  // ── Actions ──
   actions: { flexDirection: 'row', gap: 10, marginTop: 6, marginBottom: 4 },
   cancelBtn: {
     paddingVertical: 16, paddingHorizontal: 24,
-    backgroundColor: CHIP_BG, borderRadius: 20,
-    ...chipShadow,
+    backgroundColor: CHIP_BG, borderRadius: 20, ...chipShadow,
   },
-  cancelText: { fontFamily: FONTS.bodyBold, fontSize: SIZES.bodySmall, color: COLOURS.textMuted },
+  cancelText:     { fontFamily: FONTS.bodyBold, fontSize: SIZES.bodySmall, color: COLOURS.textMuted },
   keepBtn: {
     flex: 1, paddingVertical: 16,
     backgroundColor: CHIP_BG, borderRadius: 20, alignItems: 'center',
@@ -256,7 +301,6 @@ const styles = StyleSheet.create({
   keepText:       { fontFamily: FONTS.bodyBold, fontSize: SIZES.body, color: COLOURS.done },
   keepTextItalic: { fontFamily: FONTS.headingItalic, fontSize: SIZES.body, color: COLOURS.done },
 
-  // ── Celebration ──
   celebrate: {
     flex: 1, backgroundColor: COLOURS.bg,
     alignItems: 'center', justifyContent: 'center', padding: 32,
@@ -274,10 +318,8 @@ const styles = StyleSheet.create({
   },
   celebrateScores: { flexDirection: 'row', gap: 16, marginBottom: 32 },
   scoreCard: {
-    backgroundColor: GLASS_BG,
-    borderWidth: 1, borderColor: COLOURS.glassBorder,
-    borderRadius: RADIUS.card, padding: 16,
-    alignItems: 'center', gap: 8,
+    backgroundColor: GLASS_BG, borderWidth: 1, borderColor: COLOURS.glassBorder,
+    borderRadius: RADIUS.card, padding: 16, alignItems: 'center', gap: 8,
     shadowColor: '#6F4E37', shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.10, shadowRadius: 8, elevation: 3,
   },
@@ -286,12 +328,10 @@ const styles = StyleSheet.create({
     letterSpacing: 0.8, textTransform: 'uppercase', color: COLOURS.textMuted,
   },
   scorePips: { flexDirection: 'row', gap: 2 },
+  scorePip:  { fontSize: SIZES.body },
   homeBtn: {
     paddingVertical: 16, paddingHorizontal: 40,
-    backgroundColor: CHIP_BG, borderRadius: 20,
-    ...chipShadow,
+    backgroundColor: CHIP_BG, borderRadius: 20, ...chipShadow,
   },
-  homeBtnText: {
-    fontFamily: FONTS.bodyBold, fontSize: SIZES.body, color: COLOURS.coffee1,
-  },
+  homeBtnText: { fontFamily: FONTS.bodyBold, fontSize: SIZES.body, color: COLOURS.coffee1 },
 });
