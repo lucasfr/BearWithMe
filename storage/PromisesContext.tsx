@@ -1,51 +1,62 @@
 // ─── PromisesContext ──────────────────────────────────────────────────────────
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { Promise } from '../types/promise';
+import React, {
+  createContext, useCallback, useContext, useEffect, useMemo, useState,
+} from 'react';
+import { Promise as BwmPromise } from '../types/promise';
 import { loadPromises, savePromises } from './storage';
 
 interface PromisesContextValue {
-  promises: Promise[];
-  addPromise:    (p: Promise) => Promise<void>;
-  updatePromise: (p: Promise) => Promise<void>;
-  deletePromise: (id: string) => Promise<void>;
-  reload:        () => Promise<void>;
+  promises:      BwmPromise[];
+  addPromise:    (p: BwmPromise) => Promise<void>;
+  updatePromise: (p: BwmPromise) => Promise<void>;
+  deletePromise: (id: string)    => Promise<void>;
+  reload:        ()              => Promise<void>;
 }
 
 const PromisesContext = createContext<PromisesContextValue | null>(null);
 
 export function PromisesProvider({ children }: { children: React.ReactNode }) {
-  const [promises, setPromises] = useState<Promise[]>([]);
+  const [promises, setPromises] = useState<BwmPromise[]>([]);
 
-  const reload = async () => {
+  const reload = useCallback(async () => {
     const data = await loadPromises();
     setPromises(data);
-  };
+  }, []);
 
-  useEffect(() => { reload(); }, []);
+  useEffect(() => { reload(); }, [reload]);
 
-  const add = async (p: Promise) => {
-    const next = [p, ...promises];
-    setPromises(next);
-    await savePromises(next);
-  };
+  const addPromise = useCallback(async (p: BwmPromise) => {
+    setPromises(prev => {
+      const next = [p, ...prev];
+      savePromises(next);
+      return next;
+    });
+  }, []);
 
-  const update = async (updated: Promise) => {
-    const next = promises.map(p => (p.id === updated.id ? updated : p));
-    setPromises(next);
-    await savePromises(next);
-  };
+  const updatePromise = useCallback(async (updated: BwmPromise) => {
+    setPromises(prev => {
+      const next = prev.map(p => (p.id === updated.id ? updated : p));
+      savePromises(next);
+      return next;
+    });
+  }, []);
 
-  const remove = async (id: string) => {
-    const next = promises.filter(p => p.id !== id);
-    setPromises(next);
-    await savePromises(next);
-  };
+  const deletePromise = useCallback(async (id: string) => {
+    setPromises(prev => {
+      const next = prev.filter(p => p.id !== id);
+      savePromises(next);
+      return next;
+    });
+  }, []);
+
+  const value = useMemo<PromisesContextValue>(
+    () => ({ promises, addPromise, updatePromise, deletePromise, reload }),
+    [promises, addPromise, updatePromise, deletePromise, reload],
+  );
 
   return (
-    <PromisesContext.Provider
-      value={{ promises, addPromise: add, updatePromise: update, deletePromise: remove, reload }}
-    >
+    <PromisesContext.Provider value={value}>
       {children}
     </PromisesContext.Provider>
   );
