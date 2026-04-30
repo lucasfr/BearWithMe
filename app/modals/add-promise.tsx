@@ -11,6 +11,15 @@ import { generateId } from '../../utils/promise';
 import { Promise as BwmPromise, UrgencyLevel, FuzzyDeadline } from '../../types/promise';
 import { COLOURS } from '../../theme/colours';
 import { FONTS, SIZES, RADIUS } from '../../theme/typography';
+import {
+  MODAL_GLASS_BG as GLASS_BG,
+  MODAL_CHIP_BG as CHIP_BG,
+  MODAL_CHIP_ACTIVE_BG as CHIP_ACTIVE_BG,
+  MODAL_INPUT_SHADOW as inputShadow,
+  MODAL_CHIP_SHADOW as chipShadow,
+  MODAL_SHEET,
+  MODAL_HANDLE,
+} from '../../theme/modal';
 
 function FlameBar({ value, onChange }: { value: UrgencyLevel; onChange: (v: UrgencyLevel) => void }) {
   const rowRef = useRef<View>(null);
@@ -127,8 +136,8 @@ export default function AddPromiseModal() {
     <View style={styles.overlay}>
       <TouchableOpacity style={styles.dismissArea} activeOpacity={1} onPress={() => router.back()} />
 
-      <BlurView intensity={60} tint="light" style={[styles.sheet, { paddingBottom: insets.bottom + 20 }]}>
-        <View style={styles.handle} />
+      <BlurView intensity={60} tint="light" style={[MODAL_SHEET, { paddingBottom: insets.bottom + 20 }]}>
+        <View style={MODAL_HANDLE} />
         <Text style={styles.title}>
           {isEditing ? 'Edit promise' : 'I promise to…'}
         </Text>
@@ -239,40 +248,9 @@ export default function AddPromiseModal() {
   );
 }
 
-const GLASS_BG       = 'rgba(255,255,255,0.72)';
-const CHIP_BG        = 'rgba(255,255,255,0.60)';
-const CHIP_ACTIVE_BG = 'rgba(166,123,91,0.28)';
-
-const inputShadow = {
-  shadowColor: '#6F4E37',
-  shadowOffset: { width: 0, height: 2 },
-  shadowOpacity: 0.10,
-  shadowRadius: 8,
-  elevation: 3,
-};
-
-const chipShadow = {
-  shadowColor: '#6F4E37',
-  shadowOffset: { width: 0, height: 3 },
-  shadowOpacity: 0.14,
-  shadowRadius: 10,
-  elevation: 4,
-};
-
 const styles = StyleSheet.create({
   overlay:     { flex: 1, justifyContent: 'flex-end' },
   dismissArea: { flex: 1 },
-
-  sheet: {
-    borderTopLeftRadius: 28, borderTopRightRadius: 28,
-    borderTopWidth: 1.5, borderTopColor: 'rgba(255,255,255,0.80)',
-    paddingHorizontal: 20, paddingTop: 14,
-    maxHeight: '92%', overflow: 'hidden',
-  },
-  handle: {
-    width: 40, height: 5, backgroundColor: 'rgba(111,78,55,0.18)',
-    borderRadius: 99, alignSelf: 'center', marginBottom: 20,
-  },
   title: {
     fontFamily: FONTS.headingItalic, fontSize: SIZES.screenTitle,
     color: COLOURS.text, marginBottom: 24,

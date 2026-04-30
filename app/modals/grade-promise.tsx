@@ -9,17 +9,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { usePromises } from '../../storage/PromisesContext';
 import { COLOURS } from '../../theme/colours';
 import { FONTS, SIZES, RADIUS } from '../../theme/typography';
-
-const GLASS_BG = 'rgba(255,255,255,0.72)';
-const CHIP_BG  = 'rgba(255,255,255,0.60)';
-
-const chipShadow = {
-  shadowColor: '#6F4E37',
-  shadowOffset: { width: 0, height: 3 },
-  shadowOpacity: 0.14,
-  shadowRadius: 10,
-  elevation: 4,
-};
+import {
+  MODAL_GLASS_BG as GLASS_BG,
+  MODAL_CHIP_BG as CHIP_BG,
+  MODAL_CHIP_SHADOW as chipShadow,
+  MODAL_SHEET,
+  MODAL_HANDLE,
+} from '../../theme/modal';
 
 // ── LikertBar — tap or drag to set 1–5 ────────────────────────────────────
 function LikertBar({
@@ -152,8 +148,8 @@ export default function GradePromiseModal() {
     <View style={styles.overlay}>
       <TouchableOpacity style={styles.dismissArea} activeOpacity={1} onPress={() => router.back()} />
 
-      <BlurView intensity={60} tint="light" style={[styles.sheet, { paddingBottom: insets.bottom + 20 }]}>
-        <View style={styles.handle} />
+      <BlurView intensity={60} tint="light" style={[MODAL_SHEET, { paddingBottom: insets.bottom + 20 }]}>
+        <View style={MODAL_HANDLE} />
         <Text style={styles.title}>How did it go?</Text>
 
         <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
@@ -225,16 +221,6 @@ export default function GradePromiseModal() {
 const styles = StyleSheet.create({
   overlay:     { flex: 1, justifyContent: 'flex-end' },
   dismissArea: { flex: 1 },
-  sheet: {
-    borderTopLeftRadius: 28, borderTopRightRadius: 28,
-    borderTopWidth: 1.5, borderTopColor: 'rgba(255,255,255,0.80)',
-    paddingHorizontal: 20, paddingTop: 14,
-    maxHeight: '92%', overflow: 'hidden',
-  },
-  handle: {
-    width: 40, height: 5, backgroundColor: 'rgba(111,78,55,0.18)',
-    borderRadius: 99, alignSelf: 'center', marginBottom: 20,
-  },
   title: {
     fontFamily: FONTS.headingItalic, fontSize: SIZES.screenTitle,
     color: COLOURS.text, marginBottom: 20,

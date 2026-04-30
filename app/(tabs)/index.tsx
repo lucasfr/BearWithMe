@@ -11,6 +11,13 @@ import { groupPromises, computeStatus } from '../../utils/promise';
 import { Promise as BwmPromise } from '../../types/promise';
 import { COLOURS } from '../../theme/colours';
 import { FONTS, SIZES, RADIUS } from '../../theme/typography';
+import {
+  MODAL_CHIP_BG,
+  MODAL_CHIP_SHADOW,
+  MODAL_BACKDROP_COLOR,
+  MODAL_HANDLE,
+  MODAL_SHEET,
+} from '../../theme/modal';
 
 // ── SVG icons ─────────────────────────────────────────────────────────────
 const ClockIcon = () => (
@@ -69,8 +76,8 @@ function CardActionSheet({ promise, onClose, onMarkDone, onEdit, onDelete }: {
   return (
     <Modal transparent animationType="slide" onRequestClose={onClose}>
       <TouchableOpacity style={sheet.backdrop} activeOpacity={1} onPress={onClose} />
-      <View style={sheet.container}>
-        <View style={sheet.handle} />
+      <BlurView intensity={60} tint="light" style={sheet.container}>
+        <View style={MODAL_HANDLE} />
         <Text style={sheet.promiseText} numberOfLines={2}>{promise.text}</Text>
         {confirmDelete ? (
           <>
@@ -114,7 +121,7 @@ function CardActionSheet({ promise, onClose, onMarkDone, onEdit, onDelete }: {
             </TouchableOpacity>
           </>
         )}
-      </View>
+      </BlurView>
     </Modal>
   );
 }
@@ -615,19 +622,14 @@ const styles = StyleSheet.create({
 
 // ── Action sheet styles ────────────────────────────────────────────────────
 const sheet = StyleSheet.create({
-  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(44,26,14,0.45)' },
+  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: MODAL_BACKDROP_COLOR },
   container: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
-    backgroundColor: COLOURS.drawerBg,
-    borderTopLeftRadius: 24, borderTopRightRadius: 24,
-    borderTopWidth: 1, borderTopColor: COLOURS.glassBorder,
-    paddingHorizontal: 20, paddingTop: 12, paddingBottom: 40,
+    borderTopLeftRadius: 28, borderTopRightRadius: 28,
+    borderTopWidth: 1.5, borderTopColor: 'rgba(255,255,255,0.80)',
+    paddingHorizontal: 20, paddingTop: 14, paddingBottom: 40,
     shadowColor: '#2C1A0E', shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.18, shadowRadius: 24, elevation: 12,
-  },
-  handle: {
-    width: 38, height: 4, backgroundColor: 'rgba(111,78,55,0.22)',
-    borderRadius: 99, alignSelf: 'center', marginBottom: 16,
   },
   promiseText: {
     fontFamily: FONTS.bodyItalic, fontSize: SIZES.bodySmall,
@@ -644,12 +646,13 @@ const sheet = StyleSheet.create({
   actionSub:         { fontFamily: FONTS.body, fontSize: SIZES.label, color: COLOURS.textMuted, marginTop: 2 },
   closeBtn: {
     marginTop: 14, paddingVertical: 15,
-    backgroundColor: 'rgba(255,255,255,0.60)', borderRadius: RADIUS.pill, alignItems: 'center',
+    backgroundColor: MODAL_CHIP_BG, borderRadius: RADIUS.pill, alignItems: 'center',
+    ...MODAL_CHIP_SHADOW,
   },
   closeBtnText:      { fontFamily: FONTS.bodyBold, fontSize: SIZES.body, color: COLOURS.textMuted },
   confirmText:       { fontFamily: FONTS.body, fontSize: SIZES.body, color: COLOURS.text, lineHeight: 26, marginBottom: 20 },
   btnRow:            { flexDirection: 'row', gap: 12 },
-  cancelBtn:         { flex: 1, paddingVertical: 15, alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.60)', borderRadius: RADIUS.pill },
+  cancelBtn:         { flex: 1, paddingVertical: 15, alignItems: 'center', backgroundColor: MODAL_CHIP_BG, borderRadius: RADIUS.pill, ...MODAL_CHIP_SHADOW },
   cancelBtnText:     { fontFamily: FONTS.bodyBold, fontSize: SIZES.body, color: COLOURS.textMuted },
   deleteConfirmBtn:  { flex: 1, paddingVertical: 15, alignItems: 'center', backgroundColor: COLOURS.alert, borderRadius: RADIUS.pill },
   deleteConfirmText: { fontFamily: FONTS.bodyBold, fontSize: SIZES.body, color: '#fff' },
