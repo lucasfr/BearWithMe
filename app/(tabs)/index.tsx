@@ -229,7 +229,7 @@ function SectionHeader({ title, count, sorted, collapsed, onToggleSort, onToggle
       <View style={styles.sectionPill}>
         <Text style={styles.sectionPillText}>{count}</Text>
       </View>
-      <Text style={styles.collapseChevron}>{collapsed ? '▸' : '▾'}</Text>
+      <Text style={styles.collapseChevron}>{collapsed ? '›' : '⌄'}</Text>
       {!collapsed && (
         <TouchableOpacity
           style={[styles.sortBtn, sorted && styles.sortBtnActive]}
