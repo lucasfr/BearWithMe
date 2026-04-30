@@ -359,9 +359,6 @@ export default function HomeScreen() {
                       <Text style={[styles.filterFlame, u === 0 && !active && styles.filterFlameFaded]}>
                         {FLAME_MAP[u]}
                       </Text>
-                      <Text style={[styles.filterLabel, active && styles.filterLabelActive]}>
-                        {FILTER_LABELS[u]}
-                      </Text>
                     </TouchableOpacity>
                   );
                 })}
@@ -471,8 +468,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', gap: 8, marginBottom: 14,
   },
   filterChip: {
-    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4,
-    paddingVertical: 8,
+    paddingVertical: 8, paddingHorizontal: 14,
     backgroundColor: COLOURS.glass,
     borderWidth: 1, borderColor: COLOURS.glassBorder,
     borderRadius: 30,
