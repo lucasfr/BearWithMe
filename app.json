@@ -1,0 +1,25 @@
+{
+  "expo": {
+    "name": "Bear with Me",
+    "slug": "bear-with-me",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": { "backgroundColor": "#F5EFE6" },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.circadia.bearwithme",
+      "simulator": "iPhone 16 Pro"
+    },
+    "android": {
+      "adaptiveIcon": { "backgroundColor": "#F5EFE6" },
+      "package": "com.circadia.bearwithme"
+    },
+    "scheme": "bear-with-me",
+    "plugins": ["expo-router"],
+    "web": {
+      "bundler": "metro",
+      "output": "static"
+    }
+  }
+}
