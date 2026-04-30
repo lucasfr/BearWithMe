@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <clipPath id="ic">
+      <rect x="0" y="0" width="1024" height="1024" rx="230"/>
+    </clipPath>
+    <pattern id="dots" x="0" y="0" width="44" height="44" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2.8" fill="rgba(68,172,255,0.55)"/>
+    </pattern>
+  </defs>
+  <rect x="0" y="0" width="1024" height="1024" rx="230" fill="rgb(238,244,250)"/>
+  <rect x="0" y="0" width="1024" height="1024" fill="url(#dots)" clip-path="url(#ic)"/>
+  <rect x="0" y="0" width="1024" height="1024" rx="230" fill="rgba(255,255,255,0.35)" clip-path="url(#ic)"/>
+  <rect x="0" y="0" width="1024" height="1024" rx="230" fill="none" stroke="rgba(255,255,255,0.75)" stroke-width="5"/>
+  <rect x="5" y="5" width="1014" height="1014" rx="226" fill="none" stroke="rgba(44,100,160,0.10)" stroke-width="3"/>
+  <text x="512" y="590" text-anchor="middle" font-size="500" font-family="Apple Color Emoji, Segoe UI Emoji, sans-serif">🐻</text>
+  <g transform="translate(224, 724)">
+    <rect x="0" y="0" width="104" height="104" rx="22" fill="#6F4E37"/>
+    <polyline points="22,52 46,76 82,32" fill="none" stroke="white" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="132" y="92" font-family="Georgia, serif" font-style="italic" font-size="104" fill="#A67B5B">with me</text>
+    <rect x="132" y="52" width="444" height="10" rx="5" fill="#A67B5B"/>
+  </g>
+</svg>

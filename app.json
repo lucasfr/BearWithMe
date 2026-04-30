@@ -4,22 +4,32 @@
     "slug": "bear-with-me",
     "version": "0.1.0",
     "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
     "userInterfaceStyle": "light",
-    "splash": { "backgroundColor": "#F5EFE6" },
+    "splash": {
+      "image": "./assets/images/icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#EEF4FA"
+    },
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.circadia.bearwithme",
-      "simulator": "iPhone 16 Pro"
+      "simulator": "iPhone 16 Pro",
+      "icon": "./assets/images/icon.png"
     },
     "android": {
-      "adaptiveIcon": { "backgroundColor": "#F5EFE6" },
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#EEF4FA"
+      },
       "package": "com.circadia.bearwithme"
     },
     "scheme": "bear-with-me",
     "plugins": ["expo-router"],
     "web": {
       "bundler": "metro",
-      "output": "static"
+      "output": "static",
+      "favicon": "./assets/icons/favicon.ico"
     }
   }
 }
