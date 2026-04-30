@@ -1,21 +1,22 @@
 // ─── Bear with Me — typography tokens ─────────────────────────────────────────
-// All fonts are variable fonts — one file covers all weights.
 
 export const FONTS = {
   heading:       'LibreBaskerville',
   headingItalic: 'LibreBaskerville-Italic',
+  headingBold:   'LibreBaskerville-Bold',
   body:          'SourceSans3',
   bodyItalic:    'SourceSans3-Italic',
+  bodyBold:      'SourceSans3-Bold',
 } as const;
 
 export const SIZES = {
-  screenTitle:  22,
-  cardTitle:    17,
-  body:         15,
-  bodySmall:    13,
-  label:        10,
-  caption:      11,
-  emoji:        28,
+  screenTitle:  28,
+  cardTitle:    20,
+  body:         18,
+  bodySmall:    16,
+  label:        13,
+  caption:      14,
+  emoji:        32,
 } as const;
 
 export const RADIUS = {

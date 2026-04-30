@@ -7,12 +7,26 @@ import { View, StyleSheet, Platform } from 'react-native';
 import { PromisesProvider } from '../storage/PromisesContext';
 import { COLOURS } from '../theme/colours';
 
+import {
+  LibreBaskerville_400Regular,
+  LibreBaskerville_400Regular_Italic,
+  LibreBaskerville_700Bold,
+} from '@expo-google-fonts/libre-baskerville';
+
+import {
+  SourceSans3_400Regular,
+  SourceSans3_400Regular_Italic,
+  SourceSans3_700Bold,
+} from '@expo-google-fonts/source-sans-3';
+
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
-    'LibreBaskerville':        require('../assets/fonts/LibreBaskerville-Regular.ttf'),
-    'LibreBaskerville-Italic': require('../assets/fonts/LibreBaskerville-Italic.ttf'),
-    'SourceSans3':             require('../assets/fonts/SourceSans3-Regular.ttf'),
-    'SourceSans3-Italic':      require('../assets/fonts/SourceSans3-Italic.ttf'),
+    'LibreBaskerville':        LibreBaskerville_400Regular,
+    'LibreBaskerville-Italic': LibreBaskerville_400Regular_Italic,
+    'LibreBaskerville-Bold':   LibreBaskerville_700Bold,
+    'SourceSans3':             SourceSans3_400Regular,
+    'SourceSans3-Italic':      SourceSans3_400Regular_Italic,
+    'SourceSans3-Bold':        SourceSans3_700Bold,
   });
 
   if (!fontsLoaded) return null;
