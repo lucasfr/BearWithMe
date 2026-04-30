@@ -75,8 +75,9 @@ function CardActionSheet({ promise, onClose, onMarkDone, onEdit, onDelete }: {
   const [confirmDelete, setConfirmDelete] = useState(false);
   return (
     <Modal transparent animationType="slide" onRequestClose={onClose}>
-      <TouchableOpacity style={sheet.backdrop} activeOpacity={1} onPress={onClose} />
-      <BlurView intensity={60} tint="light" style={sheet.container}>
+      <View style={sheet.modalRoot}>
+        <TouchableOpacity style={sheet.dismissArea} activeOpacity={1} onPress={onClose} />
+        <BlurView intensity={60} tint="light" style={sheet.container}>
         <View style={MODAL_HANDLE} />
         <Text style={sheet.promiseText} numberOfLines={2}>{promise.text}</Text>
         {confirmDelete ? (
@@ -121,7 +122,8 @@ function CardActionSheet({ promise, onClose, onMarkDone, onEdit, onDelete }: {
             </TouchableOpacity>
           </>
         )}
-      </BlurView>
+        </BlurView>
+      </View>
     </Modal>
   );
 }
@@ -622,9 +624,9 @@ const styles = StyleSheet.create({
 
 // ── Action sheet styles ────────────────────────────────────────────────────
 const sheet = StyleSheet.create({
-  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: MODAL_BACKDROP_COLOR },
+  modalRoot:   { flex: 1, justifyContent: 'flex-end' },
+  dismissArea: { flex: 1 },
   container: {
-    position: 'absolute', bottom: 0, left: 0, right: 0,
     borderTopLeftRadius: 28, borderTopRightRadius: 28,
     borderTopWidth: 1.5, borderTopColor: 'rgba(255,255,255,0.80)',
     paddingHorizontal: 20, paddingTop: 14, paddingBottom: 40,
