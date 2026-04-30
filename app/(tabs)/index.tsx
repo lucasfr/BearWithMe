@@ -46,7 +46,7 @@ const EditIcon = ({ color }: { color: string }) => (
   </Svg>
 );
 
-// ── Pure helpers ───────────────────────────────────────────────────────────
+// ── Helpers ────────────────────────────────────────────────────────────────
 function urgencyStripeColor(urgency: number, status: string): string {
   if (status === 'overdue') return COLOURS.alert;
   if (status === 'kept')    return COLOURS.done;
@@ -56,27 +56,22 @@ function urgencyStripeColor(urgency: number, status: string): string {
   return COLOURS.textDim;
 }
 const FLAME_MAP: Record<number, string> = { 0: '🔥', 1: '🔥', 2: '🔥🔥', 3: '🔥🔥🔥' };
-const FILTER_LABELS = ['none', 'low', 'soon', 'urgent'];
 
 // ── Card action sheet ──────────────────────────────────────────────────────
-function CardActionSheet({
-  promise, onClose, onMarkDone, onEdit, onDelete,
-}: {
-  promise: BwmPromise;
+function CardActionSheet({ promise, onClose, onMarkDone, onEdit, onDelete }: {
+  promise:    BwmPromise;
   onClose:    () => void;
   onMarkDone: () => void;
   onEdit:     () => void;
   onDelete:   () => void;
 }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
-
   return (
     <Modal transparent animationType="slide" onRequestClose={onClose}>
       <TouchableOpacity style={sheet.backdrop} activeOpacity={1} onPress={onClose} />
       <View style={sheet.container}>
         <View style={sheet.handle} />
         <Text style={sheet.promiseText} numberOfLines={2}>{promise.text}</Text>
-
         {confirmDelete ? (
           <>
             <Text style={sheet.confirmText}>Delete this promise? This can't be undone.</Text>
@@ -126,7 +121,7 @@ function CardActionSheet({
 
 // ── Promise card ───────────────────────────────────────────────────────────
 function PromiseCard({ promise, onPress, onLongPress }: {
-  promise: BwmPromise;
+  promise:     BwmPromise;
   onPress:     () => void;
   onLongPress: () => void;
 }) {
@@ -220,9 +215,9 @@ function PromiseCard({ promise, onPress, onLongPress }: {
 
 // ── Section header ─────────────────────────────────────────────────────────
 function SectionHeader({ title, count, sorted, onToggleSort }: {
-  title: string;
-  count: number;
-  sorted: boolean;
+  title:        string;
+  count:        number;
+  sorted:       boolean;
   onToggleSort: () => void;
 }) {
   if (count === 0) return null;
@@ -245,6 +240,38 @@ function SectionHeader({ title, count, sorted, onToggleSort }: {
   );
 }
 
+// ── Group section — remounts when sort toggles, forcing visual reorder ─────
+function Section({ title, sectionKey, items, sorted, onToggleSort, onPress, onLongPress }: {
+  title:        string;
+  sectionKey:   string;
+  items:        BwmPromise[];
+  sorted:       boolean;
+  onToggleSort: () => void;
+  onPress:      (id: string) => void;
+  onLongPress:  (p: BwmPromise) => void;
+}) {
+  if (items.length === 0) return null;
+  // The key on this component (set by the parent) forces remount on sort toggle
+  return (
+    <View style={styles.group}>
+      <SectionHeader
+        title={title}
+        count={items.length}
+        sorted={sorted}
+        onToggleSort={onToggleSort}
+      />
+      {items.map(p => (
+        <PromiseCard
+          key={p.id}
+          promise={p}
+          onPress={() => onPress(p.id)}
+          onLongPress={() => onLongPress(p)}
+        />
+      ))}
+    </View>
+  );
+}
+
 // ── Home screen ────────────────────────────────────────────────────────────
 export default function HomeScreen() {
   const { promises, deletePromise } = usePromises();
@@ -257,40 +284,34 @@ export default function HomeScreen() {
   const hasPromises  = promises.length > 0;
   const fabBottom    = useMemo(() => 60 + insets.bottom + 12, [insets.bottom]);
 
-  const [activePromise, setActivePromise]   = useState<BwmPromise | null>(null);
-  const [urgencyFilter, setUrgencyFilter]   = useState<Set<number>>(new Set());
-  const [sortedSections, setSortedSections] = useState<Set<string>>(new Set());
+  const [activePromise,   setActivePromise]   = useState<BwmPromise | null>(null);
+  const [urgencyFilter,   setUrgencyFilter]   = useState<number[]>([]);
+  const [sortedSections,  setSortedSections]  = useState<string[]>([]);
 
   const toggleSort = useCallback((section: string) => {
-    setSortedSections(prev => {
-      const next = new Set(prev);
-      next.has(section) ? next.delete(section) : next.add(section);
-      return next;
-    });
+    setSortedSections(prev =>
+      prev.includes(section) ? prev.filter(s => s !== section) : [...prev, section]
+    );
   }, []);
 
   const toggleFilter = useCallback((u: number) => {
-    setUrgencyFilter(prev => {
-      const next = new Set(prev);
-      next.has(u) ? next.delete(u) : next.add(u);
-      return next;
-    });
+    setUrgencyFilter(prev =>
+      prev.includes(u) ? prev.filter(x => x !== u) : [...prev, u]
+    );
   }, []);
 
-  // When filters active, narrow each section; empty set = show all
-  // Sorting is applied per-section if that section is in sortedSections
   const filteredGroups = useMemo(() => {
     const byUrgencyDesc = (a: BwmPromise, b: BwmPromise) => b.urgency - a.urgency;
     const maybeSort = (items: BwmPromise[], key: string) =>
-      sortedSections.has(key) ? [...items].sort(byUrgencyDesc) : items;
+      sortedSections.includes(key) ? [...items].sort(byUrgencyDesc) : items;
 
-    const base = urgencyFilter.size === 0
+    const base = urgencyFilter.length === 0
       ? groups
       : {
-          overdue:  groups.overdue.filter(p => urgencyFilter.has(p.urgency)),
-          thisWeek: groups.thisWeek.filter(p => urgencyFilter.has(p.urgency)),
-          upcoming: groups.upcoming.filter(p => urgencyFilter.has(p.urgency)),
-          kept:     groups.kept.filter(p => urgencyFilter.has(p.urgency)),
+          overdue:  groups.overdue.filter(p => urgencyFilter.includes(p.urgency)),
+          thisWeek: groups.thisWeek.filter(p => urgencyFilter.includes(p.urgency)),
+          upcoming: groups.upcoming.filter(p => urgencyFilter.includes(p.urgency)),
+          kept:     groups.kept.filter(p => urgencyFilter.includes(p.urgency)),
         };
 
     return {
@@ -383,7 +404,7 @@ export default function HomeScreen() {
               {/* Urgency filter chips */}
               <View style={styles.filterRow}>
                 {([0, 1, 2, 3] as const).map(u => {
-                  const active = urgencyFilter.has(u);
+                  const active = urgencyFilter.includes(u);
                   return (
                     <TouchableOpacity
                       key={u}
@@ -399,49 +420,49 @@ export default function HomeScreen() {
                 })}
               </View>
 
-              <View style={styles.group}>
-                <SectionHeader title="Overdue" count={filteredGroups.overdue.length}
-                  sorted={sortedSections.has('overdue')} onToggleSort={() => toggleSort('overdue')} />
-                {filteredGroups.overdue.map(p => (
-                  <PromiseCard key={p.id} promise={p}
-                    onPress={() => pushGrade(p.id)}
-                    onLongPress={() => setActivePromise(p)} />
-                ))}
-              </View>
-              <View style={styles.group}>
-                <SectionHeader title="This week" count={filteredGroups.thisWeek.length}
-                  sorted={sortedSections.has('thisWeek')} onToggleSort={() => toggleSort('thisWeek')} />
-                {filteredGroups.thisWeek.map(p => (
-                  <PromiseCard key={p.id} promise={p}
-                    onPress={() => pushGrade(p.id)}
-                    onLongPress={() => setActivePromise(p)} />
-                ))}
-              </View>
-              <View style={styles.group}>
-                <SectionHeader title="Upcoming" count={filteredGroups.upcoming.length}
-                  sorted={sortedSections.has('upcoming')} onToggleSort={() => toggleSort('upcoming')} />
-                {filteredGroups.upcoming.map(p => (
-                  <PromiseCard key={p.id} promise={p}
-                    onPress={() => pushGrade(p.id)}
-                    onLongPress={() => setActivePromise(p)} />
-                ))}
-              </View>
-              <View style={styles.group}>
-                <SectionHeader title="Recently kept" count={filteredGroups.kept.length}
-                  sorted={sortedSections.has('kept')} onToggleSort={() => toggleSort('kept')} />
-                {filteredGroups.kept.map(p => (
-                  <PromiseCard key={p.id} promise={p}
-                    onPress={() => {}}
-                    onLongPress={() => setActivePromise(p)} />
-                ))}
-              </View>
+              {/* Sections — key includes sort state so React remounts on toggle */}
+              <Section
+                key={`overdue-${sortedSections.includes('overdue')}`}
+                title="Overdue" sectionKey="overdue"
+                items={filteredGroups.overdue}
+                sorted={sortedSections.includes('overdue')}
+                onToggleSort={() => toggleSort('overdue')}
+                onPress={pushGrade}
+                onLongPress={setActivePromise}
+              />
+              <Section
+                key={`thisWeek-${sortedSections.includes('thisWeek')}`}
+                title="This week" sectionKey="thisWeek"
+                items={filteredGroups.thisWeek}
+                sorted={sortedSections.includes('thisWeek')}
+                onToggleSort={() => toggleSort('thisWeek')}
+                onPress={pushGrade}
+                onLongPress={setActivePromise}
+              />
+              <Section
+                key={`upcoming-${sortedSections.includes('upcoming')}`}
+                title="Upcoming" sectionKey="upcoming"
+                items={filteredGroups.upcoming}
+                sorted={sortedSections.includes('upcoming')}
+                onToggleSort={() => toggleSort('upcoming')}
+                onPress={pushGrade}
+                onLongPress={setActivePromise}
+              />
+              <Section
+                key={`kept-${sortedSections.includes('kept')}`}
+                title="Recently kept" sectionKey="kept"
+                items={filteredGroups.kept}
+                sorted={sortedSections.includes('kept')}
+                onToggleSort={() => toggleSort('kept')}
+                onPress={() => {}}
+                onLongPress={setActivePromise}
+              />
             </>
           )}
         </ScrollView>
 
       </SafeAreaView>
 
-      {/* Action sheet */}
       {activePromise && (
         <CardActionSheet
           promise={activePromise}
@@ -452,7 +473,6 @@ export default function HomeScreen() {
         />
       )}
 
-      {/* FAB */}
       <TouchableOpacity style={[styles.fab, { bottom: fabBottom }]} onPress={pushAdd} activeOpacity={0.85}>
         <Text style={styles.fabPlus}>+</Text>
       </TouchableOpacity>
@@ -502,25 +522,17 @@ const styles = StyleSheet.create({
   emptyTitle: { fontFamily: FONTS.heading, fontSize: SIZES.cardTitle, color: COLOURS.text },
   emptySub:   { fontFamily: FONTS.body, fontSize: SIZES.body, color: COLOURS.textMuted, textAlign: 'center', lineHeight: 24 },
 
-  // ── Urgency filter chips ──
-  filterRow: {
-    flexDirection: 'row', gap: 8, marginBottom: 14,
-  },
+  filterRow: { flexDirection: 'row', gap: 8, marginBottom: 14 },
   filterChip: {
     paddingVertical: 8, paddingHorizontal: 14,
-    backgroundColor: COLOURS.glass,
-    borderWidth: 1, borderColor: COLOURS.glassBorder,
+    backgroundColor: COLOURS.glass, borderWidth: 1, borderColor: COLOURS.glassBorder,
     borderRadius: 30,
     shadowColor: '#6F4E37', shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08, shadowRadius: 6, elevation: 2,
   },
-  filterChipActive: {
-    backgroundColor: 'rgba(166,123,91,0.28)',
-  },
+  filterChipActive: { backgroundColor: 'rgba(166,123,91,0.28)' },
   filterFlame:      { fontSize: SIZES.label },
   filterFlameFaded: { opacity: 0.30 },
-  filterLabel:      { fontFamily: FONTS.body, fontSize: SIZES.label, fontWeight: '600', color: COLOURS.textMuted },
-  filterLabelActive:{ color: COLOURS.coffee1, fontWeight: '700' },
 
   group:        { marginBottom: 16 },
   sectionLabel: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
@@ -533,17 +545,12 @@ const styles = StyleSheet.create({
     borderRadius: 20, paddingHorizontal: 9, paddingVertical: 2,
   },
   sectionPillText: { fontFamily: FONTS.body, fontSize: SIZES.label, fontWeight: '700', color: COLOURS.textMuted },
-
   sortBtn: {
-    marginLeft: 'auto',
-    paddingVertical: 3, paddingHorizontal: 9,
-    backgroundColor: COLOURS.glass,
-    borderWidth: 1, borderColor: COLOURS.glassBorder,
+    marginLeft: 'auto', paddingVertical: 3, paddingHorizontal: 9,
+    backgroundColor: COLOURS.glass, borderWidth: 1, borderColor: COLOURS.glassBorder,
     borderRadius: 20,
   },
-  sortBtnActive: {
-    backgroundColor: 'rgba(166,123,91,0.28)',
-  },
+  sortBtnActive:     { backgroundColor: 'rgba(166,123,91,0.28)' },
   sortBtnText:       { fontFamily: FONTS.body, fontSize: SIZES.label, color: COLOURS.textMuted },
   sortBtnTextActive: { color: COLOURS.coffee1, fontWeight: '700' },
 
