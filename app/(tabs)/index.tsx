@@ -219,7 +219,12 @@ function PromiseCard({ promise, onPress, onLongPress }: {
 }
 
 // ── Section header ─────────────────────────────────────────────────────────
-function SectionHeader({ title, count }: { title: string; count: number }) {
+function SectionHeader({ title, count, sorted, onToggleSort }: {
+  title: string;
+  count: number;
+  sorted: boolean;
+  onToggleSort: () => void;
+}) {
   if (count === 0) return null;
   return (
     <View style={styles.sectionLabel}>
@@ -227,6 +232,15 @@ function SectionHeader({ title, count }: { title: string; count: number }) {
       <View style={styles.sectionPill}>
         <Text style={styles.sectionPillText}>{count}</Text>
       </View>
+      <TouchableOpacity
+        style={[styles.sortBtn, sorted && styles.sortBtnActive]}
+        onPress={onToggleSort}
+        activeOpacity={0.75}
+      >
+        <Text style={[styles.sortBtnText, sorted && styles.sortBtnTextActive]}>
+          {sorted ? '🔥 sorted' : '🔥 sort'}
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -245,6 +259,20 @@ export default function HomeScreen() {
 
   const [activePromise, setActivePromise]   = useState<BwmPromise | null>(null);
   const [urgencyFilter, setUrgencyFilter]   = useState<Set<number>>(new Set());
+  const [sortedSections, setSortedSections] = useState<Set<string>>(new Set());
+
+  const toggleSort = useCallback((section: string) => {
+    setSortedSections(prev => {
+      const next = new Set(prev);
+      next.has(section) ? next.delete(section) : next.add(section);
+      return next;
+    });
+  }, []);
+
+  const sortGroup = useCallback((items: BwmPromise[], section: string) => {
+    if (!sortedSections.has(section)) return items;
+    return [...items].sort((a, b) => b.urgency - a.urgency);
+  }, [sortedSections]);
 
   const toggleFilter = useCallback((u: number) => {
     setUrgencyFilter(prev => {
@@ -365,32 +393,36 @@ export default function HomeScreen() {
               </View>
 
               <View style={styles.group}>
-                <SectionHeader title="Overdue" count={filteredGroups.overdue.length} />
-                {filteredGroups.overdue.map(p => (
+                <SectionHeader title="Overdue" count={filteredGroups.overdue.length}
+                  sorted={sortedSections.has('overdue')} onToggleSort={() => toggleSort('overdue')} />
+                {sortGroup(filteredGroups.overdue, 'overdue').map(p => (
                   <PromiseCard key={p.id} promise={p}
                     onPress={() => pushGrade(p.id)}
                     onLongPress={() => setActivePromise(p)} />
                 ))}
               </View>
               <View style={styles.group}>
-                <SectionHeader title="This week" count={filteredGroups.thisWeek.length} />
-                {filteredGroups.thisWeek.map(p => (
+                <SectionHeader title="This week" count={filteredGroups.thisWeek.length}
+                  sorted={sortedSections.has('thisWeek')} onToggleSort={() => toggleSort('thisWeek')} />
+                {sortGroup(filteredGroups.thisWeek, 'thisWeek').map(p => (
                   <PromiseCard key={p.id} promise={p}
                     onPress={() => pushGrade(p.id)}
                     onLongPress={() => setActivePromise(p)} />
                 ))}
               </View>
               <View style={styles.group}>
-                <SectionHeader title="Upcoming" count={filteredGroups.upcoming.length} />
-                {filteredGroups.upcoming.map(p => (
+                <SectionHeader title="Upcoming" count={filteredGroups.upcoming.length}
+                  sorted={sortedSections.has('upcoming')} onToggleSort={() => toggleSort('upcoming')} />
+                {sortGroup(filteredGroups.upcoming, 'upcoming').map(p => (
                   <PromiseCard key={p.id} promise={p}
                     onPress={() => pushGrade(p.id)}
                     onLongPress={() => setActivePromise(p)} />
                 ))}
               </View>
               <View style={styles.group}>
-                <SectionHeader title="Recently kept" count={filteredGroups.kept.length} />
-                {filteredGroups.kept.map(p => (
+                <SectionHeader title="Recently kept" count={filteredGroups.kept.length}
+                  sorted={sortedSections.has('kept')} onToggleSort={() => toggleSort('kept')} />
+                {sortGroup(filteredGroups.kept, 'kept').map(p => (
                   <PromiseCard key={p.id} promise={p}
                     onPress={() => {}}
                     onLongPress={() => setActivePromise(p)} />
@@ -494,6 +526,19 @@ const styles = StyleSheet.create({
     borderRadius: 20, paddingHorizontal: 9, paddingVertical: 2,
   },
   sectionPillText: { fontFamily: FONTS.body, fontSize: SIZES.label, fontWeight: '700', color: COLOURS.textMuted },
+
+  sortBtn: {
+    marginLeft: 'auto',
+    paddingVertical: 3, paddingHorizontal: 9,
+    backgroundColor: COLOURS.glass,
+    borderWidth: 1, borderColor: COLOURS.glassBorder,
+    borderRadius: 20,
+  },
+  sortBtnActive: {
+    backgroundColor: 'rgba(166,123,91,0.28)',
+  },
+  sortBtnText:       { fontFamily: FONTS.body, fontSize: SIZES.label, color: COLOURS.textMuted },
+  sortBtnTextActive: { color: COLOURS.coffee1, fontWeight: '700' },
 
   card: {
     flexDirection: 'row', backgroundColor: COLOURS.entryBg,
