@@ -14,13 +14,13 @@ import { FONTS, SIZES, RADIUS } from '../../theme/typography';
 
 // ── SVG icons ─────────────────────────────────────────────────────────────
 const ClockIcon = () => (
-  <Svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke={COLOURS.alert} strokeWidth={2.5}>
+  <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={COLOURS.alert} strokeWidth={2.5}>
     <Circle cx="12" cy="12" r="10" />
     <Polyline points="12 6 12 12 16 14" />
   </Svg>
 );
 const MetaCalendarIcon = () => (
-  <Svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke={COLOURS.textMuted} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+  <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={COLOURS.textMuted} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
     <Rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
     <Line x1="16" y1="2" x2="16" y2="6" />
     <Line x1="8" y1="2" x2="8" y2="6" />
@@ -28,7 +28,7 @@ const MetaCalendarIcon = () => (
   </Svg>
 );
 const PersonIcon = () => (
-  <Svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke={COLOURS.textMuted} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+  <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={COLOURS.textMuted} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
     <Path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
     <Circle cx="12" cy="7" r="4" />
   </Svg>
@@ -310,8 +310,8 @@ const styles = StyleSheet.create({
     color: COLOURS.coffee2, textDecorationLine: 'line-through',
   },
   headerCenter: { flex: 1, alignItems: 'center' },
-  headerDate:   { fontFamily: FONTS.body, fontSize: 14, fontWeight: '600', color: COLOURS.textMuted },
-  headerSub:    { fontFamily: FONTS.body, fontSize: 12, color: COLOURS.textDim, marginTop: 2 },
+  headerDate:   { fontFamily: FONTS.body, fontSize: SIZES.bodySmall, fontWeight: '600', color: COLOURS.textMuted },
+  headerSub:    { fontFamily: FONTS.body, fontSize: SIZES.label, color: COLOURS.textDim, marginTop: 2 },
   headerRight:  { flexDirection: 'row', gap: 7 },
   iconBtn: {
     width: 38, height: 38, borderRadius: 12,
@@ -334,22 +334,22 @@ const styles = StyleSheet.create({
     marginBottom: 13, alignSelf: 'flex-start',
   },
   legendItem:       { flexDirection: 'row', alignItems: 'center' },
-  legendFlame:      { fontSize: 12 },
+  legendFlame:      { fontSize: SIZES.label },
   legendFlameFaded: { opacity: 0.25 },
-  legendText:       { fontFamily: FONTS.body, fontSize: 12, color: COLOURS.textMuted, fontWeight: '600' },
-  legendSep:        { color: COLOURS.textDim, fontSize: 12, marginHorizontal: 2 },
+  legendText:       { fontFamily: FONTS.body, fontSize: SIZES.label, color: COLOURS.textMuted, fontWeight: '600' },
+  legendSep:        { color: COLOURS.textDim, fontSize: SIZES.label, marginHorizontal: 2 },
 
   group:        { marginBottom: 16 },
   sectionLabel: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
   sectionLabelText: {
-    fontFamily: FONTS.body, fontSize: 11, fontWeight: '700',
+    fontFamily: FONTS.body, fontSize: SIZES.label, fontWeight: '700',
     textTransform: 'uppercase', letterSpacing: 0.9, color: COLOURS.coffee2,
   },
   sectionPill: {
     backgroundColor: COLOURS.glass, borderWidth: 1, borderColor: COLOURS.glassBorder,
     borderRadius: 20, paddingHorizontal: 9, paddingVertical: 2,
   },
-  sectionPillText: { fontFamily: FONTS.body, fontSize: 11, fontWeight: '700', color: COLOURS.textMuted },
+  sectionPillText: { fontFamily: FONTS.body, fontSize: SIZES.label, fontWeight: '700', color: COLOURS.textMuted },
 
   card: {
     flexDirection: 'row', backgroundColor: COLOURS.entryBg,
@@ -362,21 +362,21 @@ const styles = StyleSheet.create({
   cardStripe:          { width: 5 },
   cardInner:           { flex: 1, paddingVertical: 13, paddingHorizontal: 14, paddingBottom: 11 },
   cardTop:             { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10, marginBottom: 8 },
-  cardTitle:           { fontFamily: FONTS.body, fontSize: 17, fontWeight: '500', color: COLOURS.text, lineHeight: 23, flex: 1 },
+  cardTitle:           { fontFamily: FONTS.body, fontSize: SIZES.body, fontWeight: '500', color: COLOURS.text, lineHeight: 26, flex: 1 },
   cardTitleDone:       { textDecorationLine: 'line-through', color: COLOURS.textMuted },
-  cardFlames:          { fontSize: 16, lineHeight: 18, letterSpacing: -1, flexShrink: 0, paddingTop: 2 },
+  cardFlames:          { fontSize: SIZES.body, lineHeight: 22, letterSpacing: -1, flexShrink: 0, paddingTop: 2 },
   cardFlamesFaded:     { opacity: 0.25 },
-  cardNote:            { fontFamily: FONTS.bodyItalic, fontSize: 13, color: COLOURS.textMuted, lineHeight: 18, paddingLeft: 6, borderLeftWidth: 2, borderLeftColor: COLOURS.glassBorder },
+  cardNote:            { fontFamily: FONTS.bodyItalic, fontSize: SIZES.bodySmall, color: COLOURS.textMuted, lineHeight: 22, paddingLeft: 6, borderLeftWidth: 2, borderLeftColor: COLOURS.glassBorder },
   cardMeta:            { flexDirection: 'row', alignItems: 'center', gap: 10, flexWrap: 'wrap' },
   cardMetaTopMargin:   { marginTop: 8 },
   cardMetaItem:        { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  cardMetaText:        { fontFamily: FONTS.body, fontSize: 13, color: COLOURS.textMuted },
-  cardDeadlineOverdue: { color: COLOURS.alert, fontWeight: '600', fontSize: 12 },
+  cardMetaText:        { fontFamily: FONTS.body, fontSize: SIZES.bodySmall, color: COLOURS.textMuted },
+  cardDeadlineOverdue: { color: COLOURS.alert, fontWeight: '600', fontSize: SIZES.bodySmall },
 
-  keptLabel:   { fontFamily: FONTS.body, fontSize: 13, fontWeight: '600', color: COLOURS.done },
+  keptLabel:   { fontFamily: FONTS.body, fontSize: SIZES.bodySmall, fontWeight: '600', color: COLOURS.done },
   likertGroup: { flexDirection: 'column', gap: 2, marginLeft: 'auto' },
   likertRow:   { flexDirection: 'row', gap: 2 },
-  likertEmoji: { fontSize: 13 },
+  likertEmoji: { fontSize: SIZES.bodySmall },
   likertFaded: { opacity: 0.22 },
 
   fab: {
