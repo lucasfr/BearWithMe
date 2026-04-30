@@ -214,56 +214,62 @@ function PromiseCard({ promise, onPress, onLongPress }: {
 }
 
 // ── Section header ─────────────────────────────────────────────────────────
-function SectionHeader({ title, count, sorted, onToggleSort }: {
-  title:        string;
-  count:        number;
-  sorted:       boolean;
-  onToggleSort: () => void;
+function SectionHeader({ title, count, sorted, collapsed, onToggleSort, onToggleCollapse }: {
+  title:            string;
+  count:            number;
+  sorted:           boolean;
+  collapsed:        boolean;
+  onToggleSort:     () => void;
+  onToggleCollapse: () => void;
 }) {
   if (count === 0) return null;
   return (
-    <View style={styles.sectionLabel}>
+    <TouchableOpacity style={styles.sectionLabel} onPress={onToggleCollapse} activeOpacity={0.7}>
       <Text style={styles.sectionLabelText}>{title}</Text>
       <View style={styles.sectionPill}>
         <Text style={styles.sectionPillText}>{count}</Text>
       </View>
-      <TouchableOpacity
-        style={[styles.sortBtn, sorted && styles.sortBtnActive]}
-        onPress={onToggleSort}
-        activeOpacity={0.75}
-      >
-        <Text style={[styles.sortBtnText, sorted && styles.sortBtnTextActive]}>
-          {sorted ? '🔥 sorted' : '🔥 sort'}
-        </Text>
-      </TouchableOpacity>
-    </View>
+      <Text style={styles.collapseChevron}>{collapsed ? '▸' : '▾'}</Text>
+      {!collapsed && (
+        <TouchableOpacity
+          style={[styles.sortBtn, sorted && styles.sortBtnActive]}
+          onPress={e => { e.stopPropagation?.(); onToggleSort(); }}
+          activeOpacity={0.75}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Text style={[styles.sortBtnText, sorted && styles.sortBtnTextActive]}>
+            {sorted ? '🔥 sorted' : '🔥 sort'}
+          </Text>
+        </TouchableOpacity>
+      )}
+    </TouchableOpacity>
   );
 }
 
 // ── Group section — remounts when sort toggles, forcing visual reorder ─────
-function Section({ title, sectionKey, items, sorted, onToggleSort, onPress, onLongPress }: {
-  title:        string;
-  sectionKey:   string;
-  items:        BwmPromise[];
-  sorted:       boolean;
-  onToggleSort: () => void;
-  onPress:      (id: string) => void;
-  onLongPress:  (p: BwmPromise) => void;
+function Section({ title, sectionKey, items, sorted, collapsed, onToggleSort, onToggleCollapse, onPress, onLongPress }: {
+  title:            string;
+  sectionKey:       string;
+  items:            BwmPromise[];
+  sorted:           boolean;
+  collapsed:        boolean;
+  onToggleSort:     () => void;
+  onToggleCollapse: () => void;
+  onPress:          (id: string) => void;
+  onLongPress:      (p: BwmPromise) => void;
 }) {
   if (items.length === 0) return null;
-  // The key on this component (set by the parent) forces remount on sort toggle
   return (
     <View style={styles.group}>
       <SectionHeader
-        title={title}
-        count={items.length}
-        sorted={sorted}
+        title={title} count={items.length}
+        sorted={sorted} collapsed={collapsed}
         onToggleSort={onToggleSort}
+        onToggleCollapse={onToggleCollapse}
       />
-      {items.map(p => (
+      {!collapsed && items.map(p => (
         <PromiseCard
-          key={p.id}
-          promise={p}
+          key={p.id} promise={p}
           onPress={() => onPress(p.id)}
           onLongPress={() => onLongPress(p)}
         />
@@ -284,12 +290,19 @@ export default function HomeScreen() {
   const hasPromises  = promises.length > 0;
   const fabBottom    = useMemo(() => 60 + insets.bottom + 12, [insets.bottom]);
 
-  const [activePromise,   setActivePromise]   = useState<BwmPromise | null>(null);
-  const [urgencyFilter,   setUrgencyFilter]   = useState<number[]>([]);
-  const [sortedSections,  setSortedSections]  = useState<string[]>([]);
+  const [activePromise,    setActivePromise]    = useState<BwmPromise | null>(null);
+  const [urgencyFilter,    setUrgencyFilter]    = useState<number[]>([]);
+  const [sortedSections,   setSortedSections]   = useState<string[]>([]);
+  const [collapsedSections,setCollapsedSections] = useState<string[]>([]);
 
   const toggleSort = useCallback((section: string) => {
     setSortedSections(prev =>
+      prev.includes(section) ? prev.filter(s => s !== section) : [...prev, section]
+    );
+  }, []);
+
+  const toggleCollapse = useCallback((section: string) => {
+    setCollapsedSections(prev =>
       prev.includes(section) ? prev.filter(s => s !== section) : [...prev, section]
     );
   }, []);
@@ -426,7 +439,9 @@ export default function HomeScreen() {
                 title="Overdue" sectionKey="overdue"
                 items={filteredGroups.overdue}
                 sorted={sortedSections.includes('overdue')}
+                collapsed={collapsedSections.includes('overdue')}
                 onToggleSort={() => toggleSort('overdue')}
+                onToggleCollapse={() => toggleCollapse('overdue')}
                 onPress={pushGrade}
                 onLongPress={setActivePromise}
               />
@@ -435,7 +450,9 @@ export default function HomeScreen() {
                 title="This week" sectionKey="thisWeek"
                 items={filteredGroups.thisWeek}
                 sorted={sortedSections.includes('thisWeek')}
+                collapsed={collapsedSections.includes('thisWeek')}
                 onToggleSort={() => toggleSort('thisWeek')}
+                onToggleCollapse={() => toggleCollapse('thisWeek')}
                 onPress={pushGrade}
                 onLongPress={setActivePromise}
               />
@@ -444,7 +461,9 @@ export default function HomeScreen() {
                 title="Upcoming" sectionKey="upcoming"
                 items={filteredGroups.upcoming}
                 sorted={sortedSections.includes('upcoming')}
+                collapsed={collapsedSections.includes('upcoming')}
                 onToggleSort={() => toggleSort('upcoming')}
+                onToggleCollapse={() => toggleCollapse('upcoming')}
                 onPress={pushGrade}
                 onLongPress={setActivePromise}
               />
@@ -453,7 +472,9 @@ export default function HomeScreen() {
                 title="Recently kept" sectionKey="kept"
                 items={filteredGroups.kept}
                 sorted={sortedSections.includes('kept')}
+                collapsed={collapsedSections.includes('kept')}
                 onToggleSort={() => toggleSort('kept')}
+                onToggleCollapse={() => toggleCollapse('kept')}
                 onPress={() => {}}
                 onLongPress={setActivePromise}
               />
@@ -545,6 +566,7 @@ const styles = StyleSheet.create({
     borderRadius: 20, paddingHorizontal: 9, paddingVertical: 2,
   },
   sectionPillText: { fontFamily: FONTS.body, fontSize: SIZES.label, fontWeight: '700', color: COLOURS.textMuted },
+  collapseChevron:  { fontFamily: FONTS.body, fontSize: SIZES.label, color: COLOURS.coffee2, marginLeft: 2 },
   sortBtn: {
     marginLeft: 'auto', paddingVertical: 3, paddingHorizontal: 9,
     backgroundColor: COLOURS.glass, borderWidth: 1, borderColor: COLOURS.glassBorder,
