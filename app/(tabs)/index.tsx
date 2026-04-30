@@ -566,7 +566,7 @@ const styles = StyleSheet.create({
     borderRadius: 20, paddingHorizontal: 9, paddingVertical: 2,
   },
   sectionPillText: { fontFamily: FONTS.body, fontSize: SIZES.label, fontWeight: '700', color: COLOURS.textMuted },
-  collapseChevron:  { fontFamily: FONTS.body, fontSize: SIZES.label, color: COLOURS.coffee2, marginLeft: 2 },
+  collapseChevron:  { fontSize: SIZES.cardTitle, fontWeight: '700', color: COLOURS.coffee1, marginLeft: 2, lineHeight: SIZES.cardTitle },
   sortBtn: {
     marginLeft: 'auto', paddingVertical: 3, paddingHorizontal: 9,
     backgroundColor: COLOURS.glass, borderWidth: 1, borderColor: COLOURS.glassBorder,
