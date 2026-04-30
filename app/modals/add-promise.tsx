@@ -122,7 +122,7 @@ export default function AddPromiseModal() {
 
           <Text style={styles.label}>To whom</Text>
           <View style={styles.chipRow}>
-            {['myself', 'team'].map(w => (
+            {(['myself', 'team'] as const).map(w => (
               <TouchableOpacity
                 key={w}
                 style={[styles.chip, toWhom === w && styles.chipActive]}
@@ -205,14 +205,25 @@ export default function AddPromiseModal() {
   );
 }
 
-const GLASS_BG     = 'rgba(255,255,255,0.65)';
-const GLASS_BORDER = 'rgba(166,123,91,0.25)';
-const SHADOW = {
+const GLASS_BG = 'rgba(255,255,255,0.72)';
+const CHIP_BG  = 'rgba(255,255,255,0.60)';
+// Selected state — warm amber glass, clearly active but still transparent
+const CHIP_ACTIVE_BG = 'rgba(166,123,91,0.28)';
+
+const inputShadow = {
   shadowColor: '#6F4E37',
   shadowOffset: { width: 0, height: 2 },
   shadowOpacity: 0.10,
-  shadowRadius: 6,
-  elevation: 2,
+  shadowRadius: 8,
+  elevation: 3,
+};
+
+const chipShadow = {
+  shadowColor: '#6F4E37',
+  shadowOffset: { width: 0, height: 3 },
+  shadowOpacity: 0.14,
+  shadowRadius: 10,
+  elevation: 4,
 };
 
 const styles = StyleSheet.create({
@@ -220,72 +231,80 @@ const styles = StyleSheet.create({
   dismissArea: { flex: 1 },
 
   sheet: {
-    borderTopLeftRadius: 24, borderTopRightRadius: 24,
-    borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.70)',
+    borderTopLeftRadius: 28, borderTopRightRadius: 28,
+    borderTopWidth: 1.5, borderTopColor: 'rgba(255,255,255,0.80)',
     paddingHorizontal: 20, paddingTop: 14,
     maxHeight: '92%', overflow: 'hidden',
   },
   handle: {
-    width: 36, height: 4, backgroundColor: 'rgba(111,78,55,0.22)',
+    width: 40, height: 5, backgroundColor: 'rgba(111,78,55,0.18)',
     borderRadius: 99, alignSelf: 'center', marginBottom: 20,
   },
   title: {
     fontFamily: FONTS.headingItalic, fontSize: SIZES.screenTitle,
-    color: COLOURS.text, marginBottom: 22,
+    color: COLOURS.text, marginBottom: 24,
   },
   label: {
     fontFamily: FONTS.bodyBold, fontSize: SIZES.label,
     letterSpacing: 0.8, textTransform: 'uppercase', color: COLOURS.text,
-    marginBottom: 10, marginTop: 4,
+    marginBottom: 10, marginTop: 6,
   },
   labelOptional: {
     fontFamily: FONTS.body, fontSize: SIZES.label,
     textTransform: 'none', letterSpacing: 0, color: COLOURS.textMuted,
   },
+
   glassInput: {
-    backgroundColor: GLASS_BG, borderWidth: 1, borderColor: GLASS_BORDER,
-    borderRadius: RADIUS.card, padding: 14,
-    fontFamily: FONTS.body, fontSize: SIZES.body,
-    color: COLOURS.text, marginBottom: 18, ...SHADOW,
+    backgroundColor: GLASS_BG,
+    borderRadius: 16,
+    padding: 14, fontFamily: FONTS.body, fontSize: SIZES.body,
+    color: COLOURS.text, marginBottom: 18,
+    ...inputShadow,
   },
+
   flameRow: { flexDirection: 'row', justifyContent: 'center', gap: 4, marginBottom: 18 },
   flamePip: { padding: 8 },
   flameEmoji: { fontSize: SIZES.emoji, lineHeight: SIZES.emoji + 8 },
   flameFaded: { opacity: 0.22 },
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 18 },
+
+  chipRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 18 },
   chip: {
     paddingVertical: 10, paddingHorizontal: 18,
-    backgroundColor: GLASS_BG, borderWidth: 1, borderColor: GLASS_BORDER,
-    borderRadius: RADIUS.pill, ...SHADOW,
+    backgroundColor: CHIP_BG, borderRadius: RADIUS.pill,
+    ...chipShadow,
   },
-  chipActive: { backgroundColor: COLOURS.coffee1, borderColor: COLOURS.coffee1 },
+  // Warm amber glass — same family as the app, clearly selected, still transparent
+  chipActive: { backgroundColor: CHIP_ACTIVE_BG },
   chipText: { fontFamily: FONTS.bodyBold, fontSize: SIZES.bodySmall, color: COLOURS.text },
-  chipTextActive: { color: '#fff' },
+  chipTextActive: { color: COLOURS.coffee1 },
+
   whoInput: {
-    flex: 1, minWidth: 100, paddingVertical: 10, paddingHorizontal: 16,
-    backgroundColor: GLASS_BG, borderWidth: 1, borderColor: GLASS_BORDER,
-    borderRadius: RADIUS.pill, fontFamily: FONTS.body, fontSize: SIZES.bodySmall, color: COLOURS.text,
+    flex: 1, paddingVertical: 10, paddingHorizontal: 16,
+    backgroundColor: CHIP_BG, borderRadius: RADIUS.pill,
+    fontFamily: FONTS.body, fontSize: SIZES.bodySmall, color: COLOURS.text,
+    ...chipShadow,
   },
-  whenRow: { flexDirection: 'row', gap: 6, marginBottom: 14 },
+
+  whenRow: { flexDirection: 'row', gap: 6, marginBottom: 18 },
   whenChip: {
-    flex: 1, paddingVertical: 10, alignItems: 'center',
-    backgroundColor: GLASS_BG, borderWidth: 1, borderColor: GLASS_BORDER,
-    borderRadius: RADIUS.pill, ...SHADOW,
+    flex: 1, paddingVertical: 11, alignItems: 'center',
+    backgroundColor: CHIP_BG, borderRadius: RADIUS.pill,
+    ...chipShadow,
   },
-  whenChipText: { fontFamily: FONTS.bodyBold, fontSize: SIZES.caption, color: COLOURS.text },
-  actions: { flexDirection: 'row', gap: 10, marginTop: 8, marginBottom: 4 },
+  whenChipText: { fontFamily: FONTS.bodyBold, fontSize: 13, color: COLOURS.text },
+
+  actions: { flexDirection: 'row', gap: 10, marginTop: 6, marginBottom: 4 },
   cancelBtn: {
-    paddingVertical: 16, paddingHorizontal: 22,
-    backgroundColor: GLASS_BG, borderWidth: 1, borderColor: GLASS_BORDER,
-    borderRadius: RADIUS.btn, ...SHADOW,
+    paddingVertical: 16, paddingHorizontal: 24,
+    backgroundColor: CHIP_BG, borderRadius: 20,
+    ...chipShadow,
   },
   cancelText: { fontFamily: FONTS.bodyBold, fontSize: SIZES.bodySmall, color: COLOURS.textMuted },
   submitBtn: {
-    flex: 1, paddingVertical: 16, backgroundColor: GLASS_BG,
-    borderRadius: RADIUS.btn, alignItems: 'center',
-    borderWidth: 1, borderColor: GLASS_BORDER,
+    flex: 1, paddingVertical: 16,
+    backgroundColor: CHIP_BG, borderRadius: 20, alignItems: 'center',
     shadowColor: '#6F4E37', shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.18, shadowRadius: 16, elevation: 6,
+    shadowOpacity: 0.22, shadowRadius: 18, elevation: 8,
   },
   submitText: { fontFamily: FONTS.bodyBold, fontSize: SIZES.body, color: COLOURS.coffee1 },
   submitTextItalic: { fontFamily: FONTS.headingItalic, fontSize: SIZES.body, color: COLOURS.coffee1 },
