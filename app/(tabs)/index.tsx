@@ -56,6 +56,7 @@ function urgencyStripeColor(urgency: number, status: string): string {
   return COLOURS.textDim;
 }
 const FLAME_MAP: Record<number, string> = { 0: '🔥', 1: '🔥', 2: '🔥🔥', 3: '🔥🔥🔥' };
+const FILTER_LABELS = ['none', 'low', 'soon', 'urgent'];
 
 // ── Card action sheet ──────────────────────────────────────────────────────
 function CardActionSheet({
@@ -78,9 +79,7 @@ function CardActionSheet({
 
         {confirmDelete ? (
           <>
-            <Text style={sheet.confirmText}>
-              Delete this promise? This can't be undone.
-            </Text>
+            <Text style={sheet.confirmText}>Delete this promise? This can't be undone.</Text>
             <View style={sheet.btnRow}>
               <TouchableOpacity style={sheet.cancelBtn} onPress={() => setConfirmDelete(false)}>
                 <Text style={sheet.cancelBtnText}>Keep it</Text>
@@ -101,7 +100,6 @@ function CardActionSheet({
                 </View>
               </TouchableOpacity>
             )}
-
             <TouchableOpacity style={sheet.actionBtn} onPress={onEdit}>
               <Text style={sheet.actionIcon}>✏️</Text>
               <View>
@@ -109,7 +107,6 @@ function CardActionSheet({
                 <Text style={sheet.actionSub}>Change text, urgency or deadline</Text>
               </View>
             </TouchableOpacity>
-
             <TouchableOpacity style={[sheet.actionBtn, sheet.actionBtnLast]} onPress={() => setConfirmDelete(true)}>
               <Text style={sheet.actionIcon}>🗑</Text>
               <View>
@@ -117,7 +114,6 @@ function CardActionSheet({
                 <Text style={sheet.actionSub}>Remove permanently</Text>
               </View>
             </TouchableOpacity>
-
             <TouchableOpacity style={sheet.closeBtn} onPress={onClose}>
               <Text style={sheet.closeBtnText}>Cancel</Text>
             </TouchableOpacity>
@@ -129,9 +125,7 @@ function CardActionSheet({
 }
 
 // ── Promise card ───────────────────────────────────────────────────────────
-function PromiseCard({
-  promise, onPress, onLongPress,
-}: {
+function PromiseCard({ promise, onPress, onLongPress }: {
   promise: BwmPromise;
   onPress:     () => void;
   onLongPress: () => void;
@@ -179,11 +173,9 @@ function PromiseCard({
           </Text>
           <Text style={[styles.cardFlames, flameFaded && styles.cardFlamesFaded]}>{flames}</Text>
         </View>
-
         {!!promise.context && !isKept && (
           <Text style={styles.cardNote} numberOfLines={1}>{promise.context}</Text>
         )}
-
         <View style={[styles.cardMeta, (!!promise.context || isKept) && styles.cardMetaTopMargin]}>
           {!isKept && (
             <>
@@ -251,15 +243,36 @@ export default function HomeScreen() {
   const hasPromises  = promises.length > 0;
   const fabBottom    = useMemo(() => 60 + insets.bottom + 12, [insets.bottom]);
 
-  const [activePromise, setActivePromise] = useState<BwmPromise | null>(null);
+  const [activePromise, setActivePromise]   = useState<BwmPromise | null>(null);
+  const [urgencyFilter, setUrgencyFilter]   = useState<Set<number>>(new Set());
+
+  const toggleFilter = useCallback((u: number) => {
+    setUrgencyFilter(prev => {
+      const next = new Set(prev);
+      next.has(u) ? next.delete(u) : next.add(u);
+      return next;
+    });
+  }, []);
+
+  // When filters active, narrow each section; empty set = show all
+  const filteredGroups = useMemo(() => {
+    if (urgencyFilter.size === 0) return groups;
+    const keep = (p: BwmPromise) => urgencyFilter.has(p.urgency);
+    return {
+      overdue:  groups.overdue.filter(keep),
+      thisWeek: groups.thisWeek.filter(keep),
+      upcoming: groups.upcoming.filter(keep),
+      kept:     groups.kept.filter(keep),
+    };
+  }, [groups, urgencyFilter]);
 
   const pushAdd   = useCallback(() => router.push('/modals/add-promise'), [router]);
+  const pushGrade = useCallback((id: string) => router.push(`/modals/grade-promise?id=${id}`), [router]);
 
   const handleMarkDone = useCallback(() => {
     if (!activePromise) return;
     const id = activePromise.id;
     setActivePromise(null);
-    // Small delay so sheet closes before modal opens
     setTimeout(() => router.push(`/modals/grade-promise?id=${id}`), 50);
   }, [activePromise, router]);
 
@@ -275,11 +288,6 @@ export default function HomeScreen() {
     deletePromise(activePromise.id);
     setActivePromise(null);
   }, [activePromise, deletePromise]);
-
-  const pushGrade = useCallback(
-    (id: string) => router.push(`/modals/grade-promise?id=${id}`),
-    [router],
-  );
 
   return (
     <View style={styles.root}>
@@ -337,43 +345,55 @@ export default function HomeScreen() {
             </View>
           ) : (
             <>
-              <View style={styles.urgencyLegend}>
-                <View style={styles.legendItem}><Text style={[styles.legendFlame, styles.legendFlameFaded]}>🔥</Text><Text style={styles.legendText}> none</Text></View>
-                <Text style={styles.legendSep}>·</Text>
-                <View style={styles.legendItem}><Text style={styles.legendFlame}>🔥</Text><Text style={styles.legendText}> low</Text></View>
-                <Text style={styles.legendSep}>·</Text>
-                <View style={styles.legendItem}><Text style={styles.legendFlame}>🔥🔥</Text><Text style={styles.legendText}> soon</Text></View>
-                <Text style={styles.legendSep}>·</Text>
-                <View style={styles.legendItem}><Text style={styles.legendFlame}>🔥🔥🔥</Text><Text style={styles.legendText}> urgent</Text></View>
+              {/* Urgency filter chips */}
+              <View style={styles.filterRow}>
+                {([0, 1, 2, 3] as const).map(u => {
+                  const active = urgencyFilter.has(u);
+                  return (
+                    <TouchableOpacity
+                      key={u}
+                      style={[styles.filterChip, active && styles.filterChipActive]}
+                      onPress={() => toggleFilter(u)}
+                      activeOpacity={0.75}
+                    >
+                      <Text style={[styles.filterFlame, u === 0 && !active && styles.filterFlameFaded]}>
+                        {FLAME_MAP[u]}
+                      </Text>
+                      <Text style={[styles.filterLabel, active && styles.filterLabelActive]}>
+                        {FILTER_LABELS[u]}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
 
               <View style={styles.group}>
-                <SectionHeader title="Overdue" count={groups.overdue.length} />
-                {groups.overdue.map(p => (
+                <SectionHeader title="Overdue" count={filteredGroups.overdue.length} />
+                {filteredGroups.overdue.map(p => (
                   <PromiseCard key={p.id} promise={p}
                     onPress={() => pushGrade(p.id)}
                     onLongPress={() => setActivePromise(p)} />
                 ))}
               </View>
               <View style={styles.group}>
-                <SectionHeader title="This week" count={groups.thisWeek.length} />
-                {groups.thisWeek.map(p => (
+                <SectionHeader title="This week" count={filteredGroups.thisWeek.length} />
+                {filteredGroups.thisWeek.map(p => (
                   <PromiseCard key={p.id} promise={p}
                     onPress={() => pushGrade(p.id)}
                     onLongPress={() => setActivePromise(p)} />
                 ))}
               </View>
               <View style={styles.group}>
-                <SectionHeader title="Upcoming" count={groups.upcoming.length} />
-                {groups.upcoming.map(p => (
+                <SectionHeader title="Upcoming" count={filteredGroups.upcoming.length} />
+                {filteredGroups.upcoming.map(p => (
                   <PromiseCard key={p.id} promise={p}
                     onPress={() => pushGrade(p.id)}
                     onLongPress={() => setActivePromise(p)} />
                 ))}
               </View>
               <View style={styles.group}>
-                <SectionHeader title="Recently kept" count={groups.kept.length} />
-                {groups.kept.map(p => (
+                <SectionHeader title="Recently kept" count={filteredGroups.kept.length} />
+                {filteredGroups.kept.map(p => (
                   <PromiseCard key={p.id} promise={p}
                     onPress={() => {}}
                     onLongPress={() => setActivePromise(p)} />
@@ -446,17 +466,27 @@ const styles = StyleSheet.create({
   emptyTitle: { fontFamily: FONTS.heading, fontSize: SIZES.cardTitle, color: COLOURS.text },
   emptySub:   { fontFamily: FONTS.body, fontSize: SIZES.body, color: COLOURS.textMuted, textAlign: 'center', lineHeight: 24 },
 
-  urgencyLegend: {
-    flexDirection: 'row', alignItems: 'center', gap: 5,
-    backgroundColor: COLOURS.glass, borderWidth: 1, borderColor: COLOURS.glassBorder,
-    borderRadius: 30, paddingVertical: 6, paddingHorizontal: 13,
-    marginBottom: 13, alignSelf: 'flex-start',
+  // ── Urgency filter chips ──
+  filterRow: {
+    flexDirection: 'row', gap: 8, marginBottom: 14,
   },
-  legendItem:       { flexDirection: 'row', alignItems: 'center' },
-  legendFlame:      { fontSize: SIZES.label },
-  legendFlameFaded: { opacity: 0.25 },
-  legendText:       { fontFamily: FONTS.body, fontSize: SIZES.label, color: COLOURS.textMuted, fontWeight: '600' },
-  legendSep:        { color: COLOURS.textDim, fontSize: SIZES.label, marginHorizontal: 2 },
+  filterChip: {
+    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4,
+    paddingVertical: 8,
+    backgroundColor: COLOURS.glass,
+    borderWidth: 1, borderColor: COLOURS.glassBorder,
+    borderRadius: 30,
+    shadowColor: '#6F4E37', shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08, shadowRadius: 6, elevation: 2,
+  },
+  filterChipActive: {
+    backgroundColor: 'rgba(166,123,91,0.28)',
+    borderColor: COLOURS.coffee2,
+  },
+  filterFlame:      { fontSize: SIZES.label },
+  filterFlameFaded: { opacity: 0.30 },
+  filterLabel:      { fontFamily: FONTS.body, fontSize: SIZES.label, fontWeight: '600', color: COLOURS.textMuted },
+  filterLabelActive:{ color: COLOURS.coffee1, fontWeight: '700' },
 
   group:        { marginBottom: 16 },
   sectionLabel: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
@@ -509,10 +539,7 @@ const styles = StyleSheet.create({
 
 // ── Action sheet styles ────────────────────────────────────────────────────
 const sheet = StyleSheet.create({
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(44,26,14,0.45)',
-  },
+  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(44,26,14,0.45)' },
   container: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
     backgroundColor: COLOURS.drawerBg,
@@ -528,23 +555,20 @@ const sheet = StyleSheet.create({
   },
   promiseText: {
     fontFamily: FONTS.bodyItalic, fontSize: SIZES.bodySmall,
-    color: COLOURS.textMuted, marginBottom: 8,
-    paddingHorizontal: 4, lineHeight: 22,
+    color: COLOURS.textMuted, marginBottom: 8, paddingHorizontal: 4, lineHeight: 22,
   },
   actionBtn: {
-    flexDirection: 'row', alignItems: 'center', gap: 16,
-    paddingVertical: 16,
+    flexDirection: 'row', alignItems: 'center', gap: 16, paddingVertical: 16,
     borderBottomWidth: 1, borderBottomColor: COLOURS.glassBorder,
   },
-  actionBtnLast: { borderBottomWidth: 0 },
-  actionIcon:    { fontSize: 22, width: 32, textAlign: 'center' },
-  actionLabel:   { fontFamily: FONTS.bodyBold, fontSize: SIZES.body, color: COLOURS.text },
-  deleteLabel:   { color: COLOURS.alert },
-  actionSub:     { fontFamily: FONTS.body, fontSize: SIZES.label, color: COLOURS.textMuted, marginTop: 2 },
+  actionBtnLast:     { borderBottomWidth: 0 },
+  actionIcon:        { fontSize: 22, width: 32, textAlign: 'center' },
+  actionLabel:       { fontFamily: FONTS.bodyBold, fontSize: SIZES.body, color: COLOURS.text },
+  deleteLabel:       { color: COLOURS.alert },
+  actionSub:         { fontFamily: FONTS.body, fontSize: SIZES.label, color: COLOURS.textMuted, marginTop: 2 },
   closeBtn: {
     marginTop: 14, paddingVertical: 15,
-    backgroundColor: 'rgba(255,255,255,0.60)',
-    borderRadius: RADIUS.pill, alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.60)', borderRadius: RADIUS.pill, alignItems: 'center',
   },
   closeBtnText:      { fontFamily: FONTS.bodyBold, fontSize: SIZES.body, color: COLOURS.textMuted },
   confirmText:       { fontFamily: FONTS.body, fontSize: SIZES.body, color: COLOURS.text, lineHeight: 26, marginBottom: 20 },
