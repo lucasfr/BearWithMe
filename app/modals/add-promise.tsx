@@ -1,19 +1,71 @@
-import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import { useState, useRef } from 'react';
+import {
+  View, Text, TextInput, TouchableOpacity, ScrollView,
+  StyleSheet, PanResponder, GestureResponderEvent,
+} from 'react-native';
+import { BlurView } from 'expo-blur';
 import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { usePromises } from '../../storage/PromisesContext';
 import { generateId } from '../../utils/promise';
 import { Promise, UrgencyLevel, FuzzyDeadline } from '../../types/promise';
-import { COLOURS, URGENCY_FLAMES } from '../../theme/colours';
+import { COLOURS } from '../../theme/colours';
 import { FONTS, SIZES, RADIUS } from '../../theme/typography';
+
+function FlameBar({ value, onChange }: { value: UrgencyLevel; onChange: (v: UrgencyLevel) => void }) {
+  const rowRef = useRef<View>(null);
+  const rowX   = useRef(0);
+  const rowW   = useRef(0);
+
+  const getLevel = (pageX: number): UrgencyLevel => {
+    const rel = Math.max(0, Math.min(1, (pageX - rowX.current) / rowW.current));
+    if (rel < 0.33) return 1;
+    if (rel < 0.66) return 2;
+    return 3;
+  };
+
+  const pan = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder:  () => true,
+      onPanResponderGrant: (e: GestureResponderEvent) => onChange(getLevel(e.nativeEvent.pageX)),
+      onPanResponderMove:  (e: GestureResponderEvent) => onChange(getLevel(e.nativeEvent.pageX)),
+    })
+  ).current;
+
+  return (
+    <View
+      ref={rowRef}
+      onLayout={e => {
+        rowW.current = e.nativeEvent.layout.width;
+        rowRef.current?.measure((_x, _y, _w, _h, pageX) => { rowX.current = pageX; });
+      }}
+      {...pan.panHandlers}
+      style={styles.flameRow}
+    >
+      {([1, 2, 3] as UrgencyLevel[]).map(u => (
+        <TouchableOpacity
+          key={u}
+          style={styles.flamePip}
+          onPress={() => onChange(value === u ? 0 : u)}
+          activeOpacity={0.8}
+        >
+          <Text style={[styles.flameEmoji, u > value && styles.flameFaded]}>🔥</Text>
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+}
 
 export default function AddPromiseModal() {
   const router = useRouter();
   const { addPromise } = usePromises();
+  const insets = useSafeAreaInsets();
 
   const [text, setText]                 = useState('');
   const [urgency, setUrgency]           = useState<UrgencyLevel>(1);
   const [toWhom, setToWhom]             = useState('');
+  const [customWho, setCustomWho]       = useState('');
   const [fuzzy, setFuzzy]               = useState<FuzzyDeadline>('this-week');
   const [specificDate, setSpecificDate] = useState('');
   const [showDate, setShowDate]         = useState(false);
@@ -21,11 +73,12 @@ export default function AddPromiseModal() {
 
   const handleSubmit = async () => {
     if (!text.trim()) return;
+    const who = toWhom || customWho.trim() || 'myself';
     const p: Promise = {
       id: generateId(),
       text: text.trim(),
       urgency,
-      toWhom: toWhom.trim() || 'myself',
+      toWhom: who,
       fuzzyDeadline: showDate ? 'specific' : fuzzy,
       specificDate: showDate ? specificDate : undefined,
       context: context.trim() || undefined,
@@ -36,56 +89,50 @@ export default function AddPromiseModal() {
     router.back();
   };
 
-  const FUZZY_OPTIONS: { key: FuzzyDeadline; label: string }[] = [
+  const WHEN_OPTIONS: { key: FuzzyDeadline; label: string }[] = [
     { key: 'none',       label: 'no rush'    },
     { key: 'this-week',  label: 'this week'  },
     { key: 'this-month', label: 'this month' },
+    { key: 'specific',   label: 'specific'   },
   ];
 
   return (
     <View style={styles.overlay}>
-      <View style={styles.drawer}>
-        <View style={styles.handle} />
-        <Text style={styles.drawerTitle}>I promise to…</Text>
+      <TouchableOpacity style={styles.dismissArea} activeOpacity={1} onPress={() => router.back()} />
 
-        <ScrollView showsVerticalScrollIndicator={false}>
+      <BlurView
+        intensity={60}
+        tint="light"
+        style={[styles.sheet, { paddingBottom: insets.bottom + 20 }]}
+      >
+        <View style={styles.handle} />
+        <Text style={styles.title}>I promise to…</Text>
+
+        <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+
           <Text style={styles.label}>The promise</Text>
           <TextInput
-            style={styles.textInput}
+            style={[styles.glassInput, { minHeight: 60 }]}
             placeholder="describe what you promised…"
             placeholderTextColor={COLOURS.textDim}
+            selectionColor={COLOURS.coffee2}
             value={text}
             onChangeText={setText}
             multiline
           />
 
           <Text style={styles.label}>Urgency</Text>
-          <View style={styles.urgencyRow}>
-            {([0, 1, 2, 3] as UrgencyLevel[]).map(u => (
-              <TouchableOpacity
-                key={u}
-                style={[styles.urgencyBtn, urgency === u && styles.urgencyBtnActive]}
-                onPress={() => setUrgency(u)}
-              >
-                <Text style={[styles.urgencyFlame, u === 0 && styles.faded]}>
-                  {URGENCY_FLAMES[u]}
-                </Text>
-                <Text style={styles.urgencyLabel}>
-                  {['none', 'low', 'soon', 'urgent'][u]}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+          <FlameBar value={urgency} onChange={setUrgency} />
 
           <Text style={styles.label}>To whom</Text>
-          <View style={styles.whoRow}>
+          <View style={styles.chipRow}>
             {['myself', 'team'].map(w => (
               <TouchableOpacity
                 key={w}
-                style={[styles.whoChip, toWhom === w && styles.whoChipActive]}
-                onPress={() => setToWhom(prev => prev === w ? '' : w)}
+                style={[styles.chip, toWhom === w && styles.chipActive]}
+                onPress={() => { setToWhom(prev => prev === w ? '' : w); setCustomWho(''); }}
               >
-                <Text style={toWhom === w ? styles.whoChipTextActive : styles.whoChipText}>
+                <Text style={[styles.chipText, toWhom === w && styles.chipTextActive]}>
                   {w === 'myself' ? '🙋 myself' : '👥 team'}
                 </Text>
               </TouchableOpacity>
@@ -94,51 +141,53 @@ export default function AddPromiseModal() {
               style={styles.whoInput}
               placeholder="someone else…"
               placeholderTextColor={COLOURS.textDim}
-              value={!['myself', 'team', ''].includes(toWhom) ? toWhom : ''}
-              onChangeText={setToWhom}
+              selectionColor={COLOURS.coffee2}
+              value={customWho}
+              onChangeText={v => { setCustomWho(v); if (v) setToWhom(''); }}
             />
           </View>
 
           <Text style={styles.label}>When</Text>
-          <View style={styles.fuzzyRow}>
-            {FUZZY_OPTIONS.map(o => (
-              <TouchableOpacity
-                key={o.key}
-                style={[styles.fuzzyBtn, !showDate && fuzzy === o.key && styles.fuzzyBtnActive]}
-                onPress={() => { setFuzzy(o.key); setShowDate(false); }}
-              >
-                <Text style={[styles.fuzzyBtnText, !showDate && fuzzy === o.key && styles.fuzzyBtnTextActive]}>
-                  {o.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-            <TouchableOpacity
-              style={[styles.fuzzyBtn, showDate && styles.fuzzyBtnActive]}
-              onPress={() => setShowDate(s => !s)}
-            >
-              <Text style={[styles.fuzzyBtnText, showDate && styles.fuzzyBtnTextActive]}>
-                specific date
-              </Text>
-            </TouchableOpacity>
+          <View style={styles.whenRow}>
+            {WHEN_OPTIONS.map(({ key, label }) => {
+              const isActive = key === 'specific'
+                ? showDate
+                : (!showDate && fuzzy === key);
+              return (
+                <TouchableOpacity
+                  key={key}
+                  style={[styles.whenChip, isActive && styles.chipActive]}
+                  onPress={() => {
+                    if (key === 'specific') { setShowDate(s => !s); }
+                    else { setFuzzy(key); setShowDate(false); }
+                  }}
+                >
+                  <Text style={[styles.whenChipText, isActive && styles.chipTextActive]}>
+                    {label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
           {showDate && (
             <TextInput
-              style={styles.dateInput}
+              style={[styles.glassInput, { marginTop: -8, marginBottom: 16 }]}
               placeholder="e.g. Fri 2 May"
               placeholderTextColor={COLOURS.textDim}
+              selectionColor={COLOURS.coffee2}
               value={specificDate}
               onChangeText={setSpecificDate}
             />
           )}
 
           <Text style={styles.label}>
-            Context{'  '}
-            <Text style={styles.labelOptional}>optional</Text>
+            Context{'  '}<Text style={styles.labelOptional}>optional</Text>
           </Text>
           <TextInput
-            style={[styles.textInput, styles.contextInput]}
+            style={[styles.glassInput, { fontStyle: 'italic', minHeight: 56 }]}
             placeholder="any extra context to jog your memory…"
             placeholderTextColor={COLOURS.textDim}
+            selectionColor={COLOURS.coffee2}
             value={context}
             onChangeText={setContext}
             multiline
@@ -149,45 +198,103 @@ export default function AddPromiseModal() {
               <Text style={styles.cancelText}>Cancel</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit}>
-              <Text style={styles.submitText}>I promise, 🐻 with me!</Text>
+              <Text style={styles.submitText}>
+                I promise, 🐻{' '}
+                <Text style={styles.submitTextItalic}>with me!</Text>
+              </Text>
             </TouchableOpacity>
           </View>
+
         </ScrollView>
-      </View>
+      </BlurView>
     </View>
   );
 }
 
+const GLASS_BG     = 'rgba(255,255,255,0.40)';
+const GLASS_BORDER = 'rgba(255,255,255,0.60)';
+const SHADOW = {
+  shadowColor: 'rgba(111,78,55,1)',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.08,
+  shadowRadius: 6,
+  elevation: 2,
+};
+
 const styles = StyleSheet.create({
-  overlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(44,26,14,0.38)' },
-  drawer: { backgroundColor: COLOURS.drawerBg, borderTopLeftRadius: 22, borderTopRightRadius: 22, padding: 18, paddingBottom: 36, borderTopWidth: 1, borderTopColor: COLOURS.glassBorder },
-  handle: { width: 38, height: 4, backgroundColor: 'rgba(111,78,55,0.22)', borderRadius: 99, alignSelf: 'center', marginBottom: 18 },
-  drawerTitle: { fontFamily: FONTS.headingItalic, fontSize: 20, color: COLOURS.text, marginBottom: 16 },
-  label: { fontFamily: FONTS.body, fontSize: SIZES.label, fontWeight: '700', letterSpacing: 0.9, textTransform: 'uppercase', color: COLOURS.coffee2, marginBottom: 7 },
-  labelOptional: { fontFamily: FONTS.body, fontSize: 11, fontWeight: '400', textTransform: 'none', letterSpacing: 0, color: COLOURS.textDim },
-  textInput: { backgroundColor: 'rgba(255,255,255,0.80)', borderWidth: 1, borderColor: COLOURS.glassBorder, borderRadius: RADIUS.card, padding: 12, fontFamily: FONTS.body, fontSize: 16, color: COLOURS.text, marginBottom: 16, minHeight: 52 },
-  contextInput: { fontStyle: 'italic', color: COLOURS.textMuted },
-  urgencyRow: { flexDirection: 'row', gap: 8, marginBottom: 16 },
-  urgencyBtn: { flex: 1, padding: 10, backgroundColor: 'rgba(255,255,255,0.60)', borderWidth: 1.5, borderColor: COLOURS.glassBorder, borderRadius: RADIUS.card, alignItems: 'center', gap: 4 },
-  urgencyBtnActive: { borderColor: COLOURS.coffee3, backgroundColor: 'rgba(236,177,118,0.15)' },
-  urgencyFlame: { fontSize: 18 },
-  faded: { opacity: 0.25 },
-  urgencyLabel: { fontFamily: FONTS.body, fontSize: 10, fontWeight: '700', textTransform: 'uppercase', color: COLOURS.textMuted, letterSpacing: 0.4 },
-  whoRow: { flexDirection: 'row', gap: 7, marginBottom: 16, flexWrap: 'wrap' },
-  whoChip: { paddingVertical: 7, paddingHorizontal: 13, backgroundColor: 'rgba(255,255,255,0.60)', borderWidth: 1.5, borderColor: COLOURS.glassBorder, borderRadius: RADIUS.pill },
-  whoChipActive: { backgroundColor: COLOURS.coffee1, borderColor: COLOURS.coffee1 },
-  whoChipText: { fontFamily: FONTS.body, fontSize: 14, fontWeight: '600', color: COLOURS.textMuted },
-  whoChipTextActive: { fontFamily: FONTS.body, fontSize: 14, fontWeight: '600', color: '#fff' },
-  whoInput: { flex: 1, minWidth: 110, paddingVertical: 7, paddingHorizontal: 13, backgroundColor: 'rgba(255,255,255,0.80)', borderWidth: 1.5, borderColor: COLOURS.glassBorder, borderRadius: RADIUS.pill, fontFamily: FONTS.body, fontSize: 14, color: COLOURS.text },
-  fuzzyRow: { flexDirection: 'row', gap: 7, marginBottom: 10, flexWrap: 'wrap' },
-  fuzzyBtn: { flex: 1, paddingVertical: 9, backgroundColor: 'rgba(255,255,255,0.60)', borderWidth: 1.5, borderColor: COLOURS.glassBorder, borderRadius: RADIUS.card, alignItems: 'center' },
-  fuzzyBtnActive: { backgroundColor: 'rgba(166,123,91,0.12)', borderColor: COLOURS.coffee2 },
-  fuzzyBtnText: { fontFamily: FONTS.body, fontSize: 13, fontWeight: '600', color: COLOURS.textMuted },
-  fuzzyBtnTextActive: { color: COLOURS.coffee1 },
-  dateInput: { backgroundColor: 'rgba(255,255,255,0.80)', borderWidth: 1, borderColor: COLOURS.glassBorder, borderRadius: RADIUS.small, padding: 9, fontFamily: FONTS.body, fontSize: 14, fontWeight: '600', color: COLOURS.coffee1, marginBottom: 16 },
-  actions: { flexDirection: 'row', gap: 10, marginTop: 4 },
-  cancelBtn: { paddingVertical: 14, paddingHorizontal: 20, backgroundColor: COLOURS.glass, borderWidth: 1, borderColor: COLOURS.glassBorder, borderRadius: RADIUS.btn },
+  overlay: { flex: 1, justifyContent: 'flex-end' },
+  dismissArea: { flex: 1 },
+
+  sheet: {
+    borderTopLeftRadius: 24, borderTopRightRadius: 24,
+    borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.60)',
+    paddingHorizontal: 18, paddingTop: 12,
+    maxHeight: '92%',
+    overflow: 'hidden',
+  },
+
+  handle: {
+    width: 36, height: 4, backgroundColor: 'rgba(111,78,55,0.22)',
+    borderRadius: 99, alignSelf: 'center', marginBottom: 18,
+  },
+  title: {
+    fontFamily: FONTS.headingItalic, fontSize: 22,
+    color: COLOURS.text, marginBottom: 20,
+  },
+  label: {
+    fontFamily: FONTS.body, fontSize: SIZES.label, fontWeight: '700',
+    letterSpacing: 0.9, textTransform: 'uppercase', color: COLOURS.coffee2,
+    marginBottom: 8, marginTop: 2,
+  },
+  labelOptional: {
+    fontFamily: FONTS.body, fontSize: 11, fontWeight: '400',
+    textTransform: 'none', letterSpacing: 0, color: COLOURS.textDim,
+  },
+  glassInput: {
+    backgroundColor: GLASS_BG, borderWidth: 1, borderColor: GLASS_BORDER,
+    borderRadius: RADIUS.card, padding: 13, fontFamily: FONTS.body, fontSize: 16,
+    color: COLOURS.text, marginBottom: 16, ...SHADOW,
+  },
+  flameRow: { flexDirection: 'row', justifyContent: 'center', gap: 4, marginBottom: 16 },
+  flamePip: { padding: 6 },
+  flameEmoji: { fontSize: 36, lineHeight: 42 },
+  flameFaded: { opacity: 0.22 },
+  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
+  chip: {
+    paddingVertical: 9, paddingHorizontal: 16,
+    backgroundColor: GLASS_BG, borderWidth: 1, borderColor: GLASS_BORDER,
+    borderRadius: RADIUS.pill, ...SHADOW,
+  },
+  chipActive: { backgroundColor: COLOURS.coffee1, borderColor: COLOURS.coffee1 },
+  chipText: { fontFamily: FONTS.body, fontSize: 14, fontWeight: '600', color: COLOURS.textMuted },
+  chipTextActive: { color: '#fff' },
+  whoInput: {
+    flex: 1, minWidth: 100, paddingVertical: 9, paddingHorizontal: 14,
+    backgroundColor: GLASS_BG, borderWidth: 1, borderColor: GLASS_BORDER,
+    borderRadius: RADIUS.pill, fontFamily: FONTS.body, fontSize: 14, color: COLOURS.text,
+  },
+  whenRow: { flexDirection: 'row', gap: 6, marginBottom: 12 },
+  whenChip: {
+    flex: 1, paddingVertical: 9, alignItems: 'center',
+    backgroundColor: GLASS_BG, borderWidth: 1, borderColor: GLASS_BORDER,
+    borderRadius: RADIUS.pill, ...SHADOW,
+  },
+  whenChipText: { fontFamily: FONTS.body, fontSize: 12, fontWeight: '600', color: COLOURS.textMuted },
+  actions: { flexDirection: 'row', gap: 10, marginTop: 8, marginBottom: 4 },
+  cancelBtn: {
+    paddingVertical: 16, paddingHorizontal: 22,
+    backgroundColor: GLASS_BG, borderWidth: 1, borderColor: GLASS_BORDER,
+    borderRadius: RADIUS.btn, ...SHADOW,
+  },
   cancelText: { fontFamily: FONTS.body, fontSize: 15, fontWeight: '600', color: COLOURS.textMuted },
-  submitBtn: { flex: 1, paddingVertical: 14, backgroundColor: COLOURS.coffee1, borderRadius: RADIUS.btn, alignItems: 'center' },
-  submitText: { fontFamily: FONTS.body, fontSize: 15, fontWeight: '700', color: '#fff' },
+  submitBtn: {
+    flex: 1, paddingVertical: 16, backgroundColor: GLASS_BG,
+    borderRadius: RADIUS.btn, alignItems: 'center',
+    borderWidth: 1, borderColor: GLASS_BORDER,
+    shadowColor: 'rgba(111,78,55,1)',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.18, shadowRadius: 16, elevation: 6,
+  },
+  submitText: { fontFamily: FONTS.body, fontSize: 16, fontWeight: '600', color: COLOURS.coffee1 },
+  submitTextItalic: { fontFamily: FONTS.headingItalic, fontSize: 16, color: COLOURS.coffee1 },
 });

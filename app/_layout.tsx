@@ -21,8 +21,22 @@ export default function RootLayout() {
     <PromisesProvider>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="modals/add-promise"   options={{ animation: 'slide_from_bottom', presentation: 'modal' }} />
-        <Stack.Screen name="modals/grade-promise" options={{ animation: 'slide_from_bottom', presentation: 'modal' }} />
+        <Stack.Screen
+          name="modals/add-promise"
+          options={{
+            presentation: 'transparentModal',
+            animation: 'slide_from_bottom',
+            contentStyle: { backgroundColor: 'transparent' },
+          }}
+        />
+        <Stack.Screen
+          name="modals/grade-promise"
+          options={{
+            presentation: 'transparentModal',
+            animation: 'slide_from_bottom',
+            contentStyle: { backgroundColor: 'transparent' },
+          }}
+        />
       </Stack>
     </PromisesProvider>
   );
