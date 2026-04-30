@@ -1,13 +1,30 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import {
+  View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet,
+} from 'react-native';
+import { BlurView } from 'expo-blur';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { usePromises } from '../../storage/PromisesContext';
 import { COLOURS } from '../../theme/colours';
 import { FONTS, SIZES, RADIUS } from '../../theme/typography';
 
+const GLASS_BG       = 'rgba(255,255,255,0.72)';
+const CHIP_BG        = 'rgba(255,255,255,0.60)';
+const CHIP_ACTIVE_BG = 'rgba(166,123,91,0.28)';
+
+const chipShadow = {
+  shadowColor: '#6F4E37',
+  shadowOffset: { width: 0, height: 3 },
+  shadowOpacity: 0.14,
+  shadowRadius: 10,
+  elevation: 4,
+};
+
 export default function GradePromiseModal() {
-  const router = useRouter();
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const router  = useRouter();
+  const { id }  = useLocalSearchParams<{ id: string }>();
+  const insets  = useSafeAreaInsets();
   const { promises, updatePromise } = usePromises();
   const promise = promises.find(p => p.id === id);
 
@@ -30,25 +47,34 @@ export default function GradePromiseModal() {
     setCelebrated(true);
   };
 
+  // ── Celebration screen ───────────────────────────────────────────────────
   if (celebrated) {
     return (
       <View style={styles.celebrate}>
         <Text style={styles.celebrateBear}>🐻</Text>
         <Text style={styles.celebrateConfetti}>🎉 ✨ 🎊</Text>
         <Text style={styles.celebrateTitle}>Promise kept!</Text>
-        <Text style={styles.celebrateSub}>You said you would, and you did. That matters.</Text>
+        <Text style={styles.celebrateSub}>
+          You said you would, and you did.{'\n'}That matters.
+        </Text>
         <View style={styles.celebrateScores}>
           <View style={styles.scoreCard}>
             <Text style={styles.scoreLabel}>how well</Text>
-            <Text style={styles.scoreEmojis}>
-              {Array.from({length:5},(_,i) => i < bearScore ? '🐻' : '🤍').join('')}
-            </Text>
+            <View style={styles.scorePips}>
+              {[1,2,3,4,5].map(n => (
+                <Text key={n} style={{ fontSize: SIZES.body, opacity: n <= bearScore ? 1 : 0.22 }}>🐻</Text>
+              ))}
+            </View>
           </View>
           <View style={styles.scoreCard}>
             <Text style={styles.scoreLabel}>how it felt</Text>
-            <Text style={styles.scoreEmojis}>
-              {Array.from({length:5},(_,i) => i < heartScore ? '❤️' : '🤍').join('')}
-            </Text>
+            <View style={styles.scorePips}>
+              {[1,2,3,4,5].map(n => (
+                <Text key={n} style={{ fontSize: SIZES.body, opacity: n <= heartScore ? 1 : 0.22 }}>
+                  {n <= heartScore ? '❤️' : '🤍'}
+                </Text>
+              ))}
+            </View>
           </View>
         </View>
         <TouchableOpacity style={styles.homeBtn} onPress={() => router.back()}>
@@ -58,24 +84,31 @@ export default function GradePromiseModal() {
     );
   }
 
+  // ── Grading sheet ────────────────────────────────────────────────────────
   return (
     <View style={styles.overlay}>
-      <View style={styles.drawer}>
+      <TouchableOpacity style={styles.dismissArea} activeOpacity={1} onPress={() => router.back()} />
+
+      <BlurView intensity={60} tint="light" style={[styles.sheet, { paddingBottom: insets.bottom + 20 }]}>
         <View style={styles.handle} />
+        <Text style={styles.title}>
+          How did it go?
+        </Text>
 
-        <View style={styles.recap}>
-          <Text style={styles.recapLabel}>✓ marking as kept</Text>
-          <Text style={styles.recapTitle}>{promise.text}</Text>
-        </View>
+        <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
 
-        <Text style={styles.label}>How did it go?</Text>
+          {/* Promise recap card */}
+          <View style={styles.recap}>
+            <Text style={styles.recapLabel}>✓ marking as kept</Text>
+            <Text style={styles.recapTitle}>{promise.text}</Text>
+          </View>
 
-        <View style={styles.scalesRow}>
-          <View style={styles.scaleGroup}>
-            <Text style={styles.scaleLabel}>how well</Text>
+          {/* How well — bears */}
+          <Text style={styles.label}>How well did you keep it?</Text>
+          <View style={styles.scaleBlock}>
             <View style={styles.pipsRow}>
               {[1,2,3,4,5].map(n => (
-                <TouchableOpacity key={n} onPress={() => setBearScore(n)}>
+                <TouchableOpacity key={n} style={styles.pipBtn} onPress={() => setBearScore(n)}>
                   <Text style={[styles.pip, n > bearScore && styles.pipFaded]}>🐻</Text>
                 </TouchableOpacity>
               ))}
@@ -86,13 +119,12 @@ export default function GradePromiseModal() {
             </View>
           </View>
 
-          <View style={styles.dividerV} />
-
-          <View style={styles.scaleGroup}>
-            <Text style={styles.scaleLabel}>how it felt</Text>
+          {/* How it felt — hearts */}
+          <Text style={styles.label}>How did it feel?</Text>
+          <View style={styles.scaleBlock}>
             <View style={styles.pipsRow}>
               {[1,2,3,4,5].map(n => (
-                <TouchableOpacity key={n} onPress={() => setHeartScore(n)}>
+                <TouchableOpacity key={n} style={styles.pipBtn} onPress={() => setHeartScore(n)}>
                   <Text style={[styles.pip, n > heartScore && styles.pipFaded]}>
                     {n <= heartScore ? '❤️' : '🤍'}
                   </Text>
@@ -104,66 +136,162 @@ export default function GradePromiseModal() {
               <Text style={styles.hint}>proud</Text>
             </View>
           </View>
-        </View>
 
-        <Text style={styles.label}>
-          Reflection{'  '}<Text style={styles.labelOptional}>optional</Text>
-        </Text>
-        <TextInput
-          style={styles.reflectionInput}
-          placeholder="how did it go?…"
-          placeholderTextColor={COLOURS.textDim}
-          value={reflection}
-          onChangeText={setReflection}
-          multiline
-        />
+          {/* Reflection */}
+          <Text style={styles.label}>
+            Reflection{'  '}<Text style={styles.labelOptional}>optional</Text>
+          </Text>
+          <TextInput
+            style={[styles.glassInput, { fontStyle: 'italic', minHeight: 64 }]}
+            placeholder="how did it go?…"
+            placeholderTextColor={COLOURS.textMuted}
+            selectionColor={COLOURS.coffee2}
+            value={reflection}
+            onChangeText={setReflection}
+            multiline
+          />
 
-        <View style={styles.actions}>
-          <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-            <Text style={styles.backText}>Back</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.keepBtn} onPress={handleKeep}>
-            <Text style={styles.keepText}>🐻 Keep it!</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+          {/* Actions */}
+          <View style={styles.actions}>
+            <TouchableOpacity style={styles.cancelBtn} onPress={() => router.back()}>
+              <Text style={styles.cancelText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.keepBtn} onPress={handleKeep}>
+              <Text style={styles.keepText}>
+                🐻 <Text style={styles.keepTextItalic}>Keep it!</Text>
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+        </ScrollView>
+      </BlurView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  overlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(44,26,14,0.38)' },
-  drawer: { backgroundColor: COLOURS.drawerBg, borderTopLeftRadius: 22, borderTopRightRadius: 22, padding: 18, paddingBottom: 36, borderTopWidth: 1, borderTopColor: COLOURS.glassBorder },
-  handle: { width: 38, height: 4, backgroundColor: 'rgba(111,78,55,0.22)', borderRadius: 99, alignSelf: 'center', marginBottom: 18 },
-  recap: { backgroundColor: 'rgba(255,255,255,0.65)', borderWidth: 1, borderColor: COLOURS.glassBorder, borderRadius: RADIUS.card, padding: 13, marginBottom: 22, borderLeftWidth: 5, borderLeftColor: COLOURS.done },
-  recapLabel: { fontFamily: FONTS.body, fontSize: SIZES.label, fontWeight: '700', letterSpacing: 0.9, textTransform: 'uppercase', color: COLOURS.done, marginBottom: 5 },
-  recapTitle: { fontFamily: FONTS.body, fontSize: 16, fontWeight: '500', color: COLOURS.text, lineHeight: 22 },
-  label: { fontFamily: FONTS.body, fontSize: SIZES.label, fontWeight: '700', letterSpacing: 0.9, textTransform: 'uppercase', color: COLOURS.coffee2, marginBottom: 12 },
-  labelOptional: { fontFamily: FONTS.body, fontSize: 11, fontWeight: '400', textTransform: 'none', letterSpacing: 0, color: COLOURS.textDim },
-  scalesRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 20, marginBottom: 24, justifyContent: 'center' },
-  scaleGroup: { alignItems: 'center', gap: 8 },
-  scaleLabel: { fontFamily: FONTS.body, fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.6, color: COLOURS.coffee2 },
-  pipsRow: { flexDirection: 'row', gap: 4 },
-  pip: { fontSize: 28 },
-  pipFaded: { opacity: 0.22 },
-  hints: { flexDirection: 'row', justifyContent: 'space-between', width: '100%' },
-  hint: { fontFamily: FONTS.body, fontSize: 10, color: COLOURS.textDim },
-  dividerV: { width: 1, backgroundColor: COLOURS.glassBorder, alignSelf: 'stretch', marginTop: 20 },
-  reflectionInput: { backgroundColor: 'rgba(255,255,255,0.60)', borderWidth: 1, borderColor: COLOURS.glassBorder, borderRadius: RADIUS.card, padding: 10, fontFamily: FONTS.bodyItalic, fontSize: 14, color: COLOURS.textMuted, marginBottom: 18, minHeight: 52 },
-  actions: { flexDirection: 'row', gap: 10 },
-  backBtn: { paddingVertical: 14, paddingHorizontal: 20, backgroundColor: COLOURS.glass, borderWidth: 1, borderColor: COLOURS.glassBorder, borderRadius: RADIUS.btn },
-  backText: { fontFamily: FONTS.body, fontSize: 15, fontWeight: '600', color: COLOURS.textMuted },
-  keepBtn: { flex: 1, paddingVertical: 14, backgroundColor: COLOURS.done, borderRadius: RADIUS.btn, alignItems: 'center' },
-  keepText: { fontFamily: FONTS.body, fontSize: 15, fontWeight: '700', color: '#fff' },
-  celebrate: { flex: 1, backgroundColor: COLOURS.bg, alignItems: 'center', justifyContent: 'center', padding: 32 },
-  celebrateBear: { fontSize: 110, marginBottom: 8 },
+  // ── Sheet ──
+  overlay:     { flex: 1, justifyContent: 'flex-end' },
+  dismissArea: { flex: 1 },
+  sheet: {
+    borderTopLeftRadius: 28, borderTopRightRadius: 28,
+    borderTopWidth: 1.5, borderTopColor: 'rgba(255,255,255,0.80)',
+    paddingHorizontal: 20, paddingTop: 14,
+    maxHeight: '92%', overflow: 'hidden',
+  },
+  handle: {
+    width: 40, height: 5, backgroundColor: 'rgba(111,78,55,0.18)',
+    borderRadius: 99, alignSelf: 'center', marginBottom: 20,
+  },
+  title: {
+    fontFamily: FONTS.headingItalic, fontSize: SIZES.screenTitle,
+    color: COLOURS.text, marginBottom: 20,
+  },
+
+  // ── Recap card ──
+  recap: {
+    backgroundColor: GLASS_BG,
+    borderRadius: RADIUS.card,
+    padding: 14, marginBottom: 22,
+    borderLeftWidth: 5, borderLeftColor: COLOURS.done,
+    shadowColor: '#6F4E37', shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.10, shadowRadius: 8, elevation: 3,
+  },
+  recapLabel: {
+    fontFamily: FONTS.bodyBold, fontSize: SIZES.label,
+    letterSpacing: 0.9, textTransform: 'uppercase',
+    color: COLOURS.done, marginBottom: 6,
+  },
+  recapTitle: {
+    fontFamily: FONTS.body, fontSize: SIZES.body,
+    fontWeight: '500', color: COLOURS.text, lineHeight: 26,
+  },
+
+  // ── Labels ──
+  label: {
+    fontFamily: FONTS.bodyBold, fontSize: SIZES.label,
+    letterSpacing: 0.8, textTransform: 'uppercase', color: COLOURS.text,
+    marginBottom: 10, marginTop: 6,
+  },
+  labelOptional: {
+    fontFamily: FONTS.body, fontSize: SIZES.label,
+    textTransform: 'none', letterSpacing: 0, color: COLOURS.textMuted,
+  },
+
+  // ── Likert scales ──
+  scaleBlock: { marginBottom: 20 },
+  pipsRow:    { flexDirection: 'row', justifyContent: 'center', gap: 6 },
+  pipBtn:     { padding: 6 },
+  pip:        { fontSize: SIZES.emoji, lineHeight: SIZES.emoji + 8 },
+  pipFaded:   { opacity: 0.22 },
+  hints: {
+    flexDirection: 'row', justifyContent: 'space-between',
+    marginTop: 6, paddingHorizontal: 8,
+  },
+  hint: { fontFamily: FONTS.body, fontSize: SIZES.label, color: COLOURS.textDim },
+
+  // ── Reflection input ──
+  glassInput: {
+    backgroundColor: GLASS_BG, borderRadius: 16,
+    padding: 14, fontFamily: FONTS.body, fontSize: SIZES.body,
+    color: COLOURS.text, marginBottom: 18,
+    shadowColor: '#6F4E37', shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.10, shadowRadius: 8, elevation: 3,
+  },
+
+  // ── Actions ──
+  actions: { flexDirection: 'row', gap: 10, marginTop: 6, marginBottom: 4 },
+  cancelBtn: {
+    paddingVertical: 16, paddingHorizontal: 24,
+    backgroundColor: CHIP_BG, borderRadius: 20,
+    ...chipShadow,
+  },
+  cancelText: { fontFamily: FONTS.bodyBold, fontSize: SIZES.bodySmall, color: COLOURS.textMuted },
+  keepBtn: {
+    flex: 1, paddingVertical: 16,
+    backgroundColor: CHIP_BG, borderRadius: 20, alignItems: 'center',
+    shadowColor: '#6F4E37', shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.22, shadowRadius: 18, elevation: 8,
+  },
+  keepText:       { fontFamily: FONTS.bodyBold, fontSize: SIZES.body, color: COLOURS.done },
+  keepTextItalic: { fontFamily: FONTS.headingItalic, fontSize: SIZES.body, color: COLOURS.done },
+
+  // ── Celebration ──
+  celebrate: {
+    flex: 1, backgroundColor: COLOURS.bg,
+    alignItems: 'center', justifyContent: 'center', padding: 32,
+  },
+  celebrateBear:     { fontSize: 110, marginBottom: 8 },
   celebrateConfetti: { fontSize: 30, letterSpacing: 4, marginBottom: 20 },
-  celebrateTitle: { fontFamily: FONTS.headingItalic, fontSize: 28, color: COLOURS.text, marginBottom: 8 },
-  celebrateSub: { fontFamily: FONTS.body, fontSize: 15, color: COLOURS.textMuted, textAlign: 'center', lineHeight: 24, marginBottom: 26, maxWidth: 260 },
-  celebrateScores: { flexDirection: 'row', gap: 16, marginBottom: 28 },
-  scoreCard: { backgroundColor: 'rgba(255,255,255,0.70)', borderWidth: 1, borderColor: COLOURS.glassBorder, borderRadius: RADIUS.card, padding: 14, alignItems: 'center', gap: 6 },
-  scoreLabel: { fontFamily: FONTS.body, fontSize: 10, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase', color: COLOURS.textMuted },
-  scoreEmojis: { fontSize: 18, letterSpacing: 2 },
-  homeBtn: { paddingVertical: 14, paddingHorizontal: 40, backgroundColor: COLOURS.coffee1, borderRadius: RADIUS.btn },
-  homeBtnText: { fontFamily: FONTS.body, fontSize: 16, fontWeight: '700', color: '#fff' },
+  celebrateTitle: {
+    fontFamily: FONTS.headingItalic, fontSize: SIZES.screenTitle,
+    color: COLOURS.text, marginBottom: 8,
+  },
+  celebrateSub: {
+    fontFamily: FONTS.body, fontSize: SIZES.body,
+    color: COLOURS.textMuted, textAlign: 'center', lineHeight: 26,
+    marginBottom: 28, maxWidth: 280,
+  },
+  celebrateScores: { flexDirection: 'row', gap: 16, marginBottom: 32 },
+  scoreCard: {
+    backgroundColor: GLASS_BG,
+    borderWidth: 1, borderColor: COLOURS.glassBorder,
+    borderRadius: RADIUS.card, padding: 16,
+    alignItems: 'center', gap: 8,
+    shadowColor: '#6F4E37', shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.10, shadowRadius: 8, elevation: 3,
+  },
+  scoreLabel: {
+    fontFamily: FONTS.bodyBold, fontSize: SIZES.label,
+    letterSpacing: 0.8, textTransform: 'uppercase', color: COLOURS.textMuted,
+  },
+  scorePips: { flexDirection: 'row', gap: 2 },
+  homeBtn: {
+    paddingVertical: 16, paddingHorizontal: 40,
+    backgroundColor: CHIP_BG, borderRadius: 20,
+    ...chipShadow,
+  },
+  homeBtnText: {
+    fontFamily: FONTS.bodyBold, fontSize: SIZES.body, color: COLOURS.coffee1,
+  },
 });
