@@ -477,7 +477,6 @@ const styles = StyleSheet.create({
   },
   filterChipActive: {
     backgroundColor: 'rgba(166,123,91,0.28)',
-    borderColor: COLOURS.coffee2,
   },
   filterFlame:      { fontSize: SIZES.label },
   filterFlameFaded: { opacity: 0.30 },
