@@ -130,21 +130,26 @@ const styles = StyleSheet.create({
   easterProgress: { fontFamily: FONTS.body, fontSize: SIZES.label, color: COLOURS.textDim, marginTop: 4 },
 
   easterCard: {
-    backgroundColor: GLASS_BG, borderRadius: RADIUS.card,
+    backgroundColor: 'rgba(255,255,255,0.38)',
+    borderRadius: RADIUS.card,
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.70)',
     padding: 18, marginTop: 12, marginBottom: 4,
     borderLeftWidth: 5, borderLeftColor: COLOURS.coffee3,
-    shadowColor: '#6F4E37', shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12, shadowRadius: 8, elevation: 3, width: '100%',
+    shadowColor: '#6F4E37', shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08, shadowRadius: 16, elevation: 3, width: '100%',
   },
   easterTitle: { fontFamily: FONTS.heading, fontSize: SIZES.cardTitle, color: COLOURS.text, marginBottom: 10 },
   easterBody:  { fontFamily: FONTS.body, fontSize: SIZES.bodySmall, color: COLOURS.textMuted, lineHeight: 24 },
   easterClose: { fontFamily: FONTS.body, fontSize: SIZES.label, color: COLOURS.textDim, marginTop: 14, textAlign: 'right' },
 
   card: {
-    backgroundColor: GLASS_BG, borderRadius: RADIUS.card,
+    backgroundColor: 'rgba(255,255,255,0.38)',
+    borderRadius: RADIUS.card,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.70)',
     padding: 18, marginBottom: 14,
-    shadowColor: '#6F4E37', shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.10, shadowRadius: 8, elevation: 3,
+    shadowColor: '#6F4E37', shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08, shadowRadius: 16, elevation: 3,
   },
   cardLabel: {
     fontFamily: FONTS.bodyBold, fontSize: SIZES.label,
