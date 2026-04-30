@@ -1,5 +1,5 @@
 import {
-  View, Text, ScrollView, StyleSheet, TouchableOpacity, Platform, Modal,
+  View, Text, ScrollView, StyleSheet, TouchableOpacity, Platform, Modal, TextInput,
 } from 'react-native';
 import { useCallback, useMemo, useState } from 'react';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -14,9 +14,7 @@ import { FONTS, SIZES, RADIUS } from '../../theme/typography';
 import {
   MODAL_CHIP_BG,
   MODAL_CHIP_SHADOW,
-  MODAL_BACKDROP_COLOR,
   MODAL_HANDLE,
-  MODAL_SHEET,
 } from '../../theme/modal';
 
 // ── SVG icons ─────────────────────────────────────────────────────────────
@@ -46,10 +44,14 @@ const SearchIcon = ({ color }: { color: string }) => (
     <Path d="m21 21-4.35-4.35" />
   </Svg>
 );
-const EditIcon = ({ color }: { color: string }) => (
+const TrashIcon = ({ color }: { color: string }) => (
   <Svg width={19} height={19} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-    <Path d="M12 20h9" />
-    <Path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+    <Path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
+  </Svg>
+);
+const XIcon = ({ color }: { color: string }) => (
+  <Svg width={19} height={19} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.5} strokeLinecap="round">
+    <Path d="M18 6 6 18M6 6l12 12" />
   </Svg>
 );
 
@@ -78,50 +80,50 @@ function CardActionSheet({ promise, onClose, onMarkDone, onEdit, onDelete }: {
       <View style={sheet.modalRoot}>
         <TouchableOpacity style={sheet.dismissArea} activeOpacity={1} onPress={onClose} />
         <BlurView intensity={60} tint="light" style={sheet.container}>
-        <View style={MODAL_HANDLE} />
-        <Text style={sheet.promiseText} numberOfLines={2}>{promise.text}</Text>
-        {confirmDelete ? (
-          <>
-            <Text style={sheet.confirmText}>Delete this promise? This can't be undone.</Text>
-            <View style={sheet.btnRow}>
-              <TouchableOpacity style={sheet.cancelBtn} onPress={() => setConfirmDelete(false)}>
-                <Text style={sheet.cancelBtnText}>Keep it</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={sheet.deleteConfirmBtn} onPress={onDelete}>
-                <Text style={sheet.deleteConfirmText}>Yes, delete</Text>
-              </TouchableOpacity>
-            </View>
-          </>
-        ) : (
-          <>
-            {promise.status !== 'kept' && (
-              <TouchableOpacity style={sheet.actionBtn} onPress={onMarkDone}>
-                <Text style={sheet.actionIcon}>✓</Text>
+          <View style={MODAL_HANDLE} />
+          <Text style={sheet.promiseText} numberOfLines={2}>{promise.text}</Text>
+          {confirmDelete ? (
+            <>
+              <Text style={sheet.confirmText}>Delete this promise? This can't be undone.</Text>
+              <View style={sheet.btnRow}>
+                <TouchableOpacity style={sheet.cancelBtn} onPress={() => setConfirmDelete(false)}>
+                  <Text style={sheet.cancelBtnText}>Keep it</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={sheet.deleteConfirmBtn} onPress={onDelete}>
+                  <Text style={sheet.deleteConfirmText}>Yes, delete</Text>
+                </TouchableOpacity>
+              </View>
+            </>
+          ) : (
+            <>
+              {promise.status !== 'kept' && (
+                <TouchableOpacity style={sheet.actionBtn} onPress={onMarkDone}>
+                  <Text style={sheet.actionIcon}>✓</Text>
+                  <View>
+                    <Text style={sheet.actionLabel}>Mark as done</Text>
+                    <Text style={sheet.actionSub}>Grade how it went</Text>
+                  </View>
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity style={sheet.actionBtn} onPress={onEdit}>
+                <Text style={sheet.actionIcon}>✏️</Text>
                 <View>
-                  <Text style={sheet.actionLabel}>Mark as done</Text>
-                  <Text style={sheet.actionSub}>Grade how it went</Text>
+                  <Text style={sheet.actionLabel}>Edit promise</Text>
+                  <Text style={sheet.actionSub}>Change text, urgency or deadline</Text>
                 </View>
               </TouchableOpacity>
-            )}
-            <TouchableOpacity style={sheet.actionBtn} onPress={onEdit}>
-              <Text style={sheet.actionIcon}>✏️</Text>
-              <View>
-                <Text style={sheet.actionLabel}>Edit promise</Text>
-                <Text style={sheet.actionSub}>Change text, urgency or deadline</Text>
-              </View>
-            </TouchableOpacity>
-            <TouchableOpacity style={[sheet.actionBtn, sheet.actionBtnLast]} onPress={() => setConfirmDelete(true)}>
-              <Text style={sheet.actionIcon}>🗑</Text>
-              <View>
-                <Text style={[sheet.actionLabel, sheet.deleteLabel]}>Delete</Text>
-                <Text style={sheet.actionSub}>Remove permanently</Text>
-              </View>
-            </TouchableOpacity>
-            <TouchableOpacity style={sheet.closeBtn} onPress={onClose}>
-              <Text style={sheet.closeBtnText}>Cancel</Text>
-            </TouchableOpacity>
-          </>
-        )}
+              <TouchableOpacity style={[sheet.actionBtn, sheet.actionBtnLast]} onPress={() => setConfirmDelete(true)}>
+                <Text style={sheet.actionIcon}>🗑</Text>
+                <View>
+                  <Text style={[sheet.actionLabel, sheet.deleteLabel]}>Delete</Text>
+                  <Text style={sheet.actionSub}>Remove permanently</Text>
+                </View>
+              </TouchableOpacity>
+              <TouchableOpacity style={sheet.closeBtn} onPress={onClose}>
+                <Text style={sheet.closeBtnText}>Cancel</Text>
+              </TouchableOpacity>
+            </>
+          )}
         </BlurView>
       </View>
     </Modal>
@@ -129,10 +131,13 @@ function CardActionSheet({ promise, onClose, onMarkDone, onEdit, onDelete }: {
 }
 
 // ── Promise card ───────────────────────────────────────────────────────────
-function PromiseCard({ promise, onPress, onLongPress }: {
-  promise:     BwmPromise;
-  onPress:     () => void;
-  onLongPress: () => void;
+function PromiseCard({ promise, onPress, onLongPress, selectMode, selected, onToggleSelect }: {
+  promise:        BwmPromise;
+  onPress:        () => void;
+  onLongPress:    () => void;
+  selectMode:     boolean;
+  selected:       boolean;
+  onToggleSelect: () => void;
 }) {
   const status      = computeStatus(promise);
   const isKept      = status === 'kept';
@@ -163,12 +168,19 @@ function PromiseCard({ promise, onPress, onLongPress }: {
 
   return (
     <TouchableOpacity
-      style={[styles.card, isKept && styles.cardDone]}
-      onPress={onPress}
-      onLongPress={onLongPress}
+      style={[styles.card, isKept && styles.cardDone, selected && styles.cardSelected]}
+      onPress={selectMode ? onToggleSelect : onPress}
+      onLongPress={selectMode ? undefined : onLongPress}
       delayLongPress={350}
       activeOpacity={0.75}
     >
+      {/* Select checkbox */}
+      {selectMode && (
+        <View style={[styles.selectBox, selected && styles.selectBoxChecked]}>
+          {selected && <Text style={styles.selectCheck}>✓</Text>}
+        </View>
+      )}
+
       <View style={[styles.cardStripe, { backgroundColor: stripeColor }]} />
       <View style={styles.cardInner}>
         <View style={styles.cardTop}>
@@ -255,17 +267,20 @@ function SectionHeader({ title, count, sorted, collapsed, onToggleSort, onToggle
   );
 }
 
-// ── Group section — remounts when sort toggles, forcing visual reorder ─────
-function Section({ title, sectionKey, items, sorted, collapsed, onToggleSort, onToggleCollapse, onPress, onLongPress }: {
+// ── Section ────────────────────────────────────────────────────────────────
+function Section({ title, sectionKey, items, sorted, collapsed, selectMode, selected, onToggleSort, onToggleCollapse, onPress, onLongPress, onToggleSelect }: {
   title:            string;
   sectionKey:       string;
   items:            BwmPromise[];
   sorted:           boolean;
   collapsed:        boolean;
+  selectMode:       boolean;
+  selected:         string[];
   onToggleSort:     () => void;
   onToggleCollapse: () => void;
   onPress:          (id: string) => void;
   onLongPress:      (p: BwmPromise) => void;
+  onToggleSelect:   (id: string) => void;
 }) {
   if (items.length === 0) return null;
   return (
@@ -281,6 +296,9 @@ function Section({ title, sectionKey, items, sorted, collapsed, onToggleSort, on
           key={p.id} promise={p}
           onPress={() => onPress(p.id)}
           onLongPress={() => onLongPress(p)}
+          selectMode={selectMode}
+          selected={selected.includes(p.id)}
+          onToggleSelect={() => onToggleSelect(p.id)}
         />
       ))}
     </View>
@@ -299,10 +317,20 @@ export default function HomeScreen() {
   const hasPromises  = promises.length > 0;
   const fabBottom    = useMemo(() => 60 + insets.bottom + 12, [insets.bottom]);
 
-  const [activePromise,    setActivePromise]    = useState<BwmPromise | null>(null);
-  const [urgencyFilter,    setUrgencyFilter]    = useState<number[]>([]);
-  const [sortedSections,   setSortedSections]   = useState<string[]>([]);
-  const [collapsedSections,setCollapsedSections] = useState<string[]>([]);
+  // Core state
+  const [activePromise,     setActivePromise]     = useState<BwmPromise | null>(null);
+  const [urgencyFilter,     setUrgencyFilter]     = useState<number[]>([]);
+  const [sortedSections,    setSortedSections]    = useState<string[]>([]);
+  const [collapsedSections, setCollapsedSections] = useState<string[]>([]);
+
+  // Search state
+  const [searchActive, setSearchActive] = useState(false);
+  const [searchQuery,  setSearchQuery]  = useState('');
+
+  // Select/bulk-delete state
+  const [selectMode,   setSelectMode]   = useState(false);
+  const [selectedIds,  setSelectedIds]  = useState<string[]>([]);
+  const [confirmBulk,  setConfirmBulk]  = useState(false);
 
   const toggleSort = useCallback((section: string) => {
     setSortedSections(prev =>
@@ -322,27 +350,44 @@ export default function HomeScreen() {
     );
   }, []);
 
+  const toggleSelect = useCallback((id: string) => {
+    setSelectedIds(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
+  }, []);
+
+  const exitSelectMode = useCallback(() => {
+    setSelectMode(false);
+    setSelectedIds([]);
+    setConfirmBulk(false);
+  }, []);
+
+  const handleBulkDelete = useCallback(() => {
+    selectedIds.forEach(id => deletePromise(id));
+    exitSelectMode();
+  }, [selectedIds, deletePromise, exitSelectMode]);
+
+  // Filtering + sorting
   const filteredGroups = useMemo(() => {
     const byUrgencyDesc = (a: BwmPromise, b: BwmPromise) => b.urgency - a.urgency;
     const maybeSort = (items: BwmPromise[], key: string) =>
       sortedSections.includes(key) ? [...items].sort(byUrgencyDesc) : items;
 
-    const base = urgencyFilter.length === 0
-      ? groups
-      : {
-          overdue:  groups.overdue.filter(p => urgencyFilter.includes(p.urgency)),
-          thisWeek: groups.thisWeek.filter(p => urgencyFilter.includes(p.urgency)),
-          upcoming: groups.upcoming.filter(p => urgencyFilter.includes(p.urgency)),
-          kept:     groups.kept.filter(p => urgencyFilter.includes(p.urgency)),
-        };
+    const q = searchQuery.trim().toLowerCase();
+    const matchSearch = (p: BwmPromise) =>
+      !q || p.text.toLowerCase().includes(q) || (p.context ?? '').toLowerCase().includes(q) || (p.toWhom ?? '').toLowerCase().includes(q);
+    const matchFilter = (p: BwmPromise) =>
+      urgencyFilter.length === 0 || urgencyFilter.includes(p.urgency);
+
+    const filter = (items: BwmPromise[]) => items.filter(p => matchSearch(p) && matchFilter(p));
 
     return {
-      overdue:  maybeSort(base.overdue,  'overdue'),
-      thisWeek: maybeSort(base.thisWeek, 'thisWeek'),
-      upcoming: maybeSort(base.upcoming, 'upcoming'),
-      kept:     maybeSort(base.kept,     'kept'),
+      overdue:  maybeSort(filter(groups.overdue),  'overdue'),
+      thisWeek: maybeSort(filter(groups.thisWeek), 'thisWeek'),
+      upcoming: maybeSort(filter(groups.upcoming), 'upcoming'),
+      kept:     maybeSort(filter(groups.kept),     'kept'),
     };
-  }, [groups, urgencyFilter, sortedSections]);
+  }, [groups, urgencyFilter, sortedSections, searchQuery]);
 
   const pushAdd   = useCallback(() => router.push('/modals/add-promise'), [router]);
   const pushGrade = useCallback((id: string) => router.push(`/modals/grade-promise?id=${id}`), [router]);
@@ -367,6 +412,16 @@ export default function HomeScreen() {
     setActivePromise(null);
   }, [activePromise, deletePromise]);
 
+  const sectionProps = (key: string) => ({
+    sorted:           sortedSections.includes(key),
+    collapsed:        collapsedSections.includes(key),
+    selectMode,
+    selected:         selectedIds,
+    onToggleSort:     () => toggleSort(key),
+    onToggleCollapse: () => toggleCollapse(key),
+    onToggleSelect:   toggleSelect,
+  });
+
   return (
     <View style={styles.root}>
 
@@ -386,29 +441,81 @@ export default function HomeScreen() {
 
         {/* Header */}
         <BlurView intensity={60} tint="light" style={styles.header}>
-          <View style={styles.logoBlock}>
-            <Text style={styles.bear}>🐻</Text>
-            <View style={styles.titleSub}>
-              <View style={styles.checkbox}>
-                <Text style={styles.checkmark}>✓</Text>
+
+          {selectMode ? (
+            /* ── Select mode header ── */
+            <>
+              <TouchableOpacity style={styles.iconBtn} onPress={exitSelectMode}>
+                <XIcon color={COLOURS.coffee1} />
+              </TouchableOpacity>
+              <View style={styles.headerCenter}>
+                <Text style={styles.headerDate}>
+                  {selectedIds.length} selected
+                </Text>
               </View>
-              <Text style={styles.withMe}>with me</Text>
-            </View>
-          </View>
-          <View style={styles.headerCenter}>
-            <Text style={styles.headerDate}>
-              {new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long' })}
-            </Text>
-            <Text style={styles.headerSub}>{pendingCount} promises · {overdueCount} overdue</Text>
-          </View>
-          <View style={styles.headerRight}>
-            <TouchableOpacity style={styles.iconBtn}>
-              <SearchIcon color={COLOURS.coffee1} />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.iconBtn}>
-              <EditIcon color={COLOURS.coffee1} />
-            </TouchableOpacity>
-          </View>
+              {selectedIds.length > 0 ? (
+                confirmBulk ? (
+                  <View style={styles.bulkConfirm}>
+                    <TouchableOpacity style={styles.bulkKeepBtn} onPress={() => setConfirmBulk(false)}>
+                      <Text style={styles.bulkKeepText}>Keep</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.bulkDeleteBtn} onPress={handleBulkDelete}>
+                      <Text style={styles.bulkDeleteText}>Delete {selectedIds.length}</Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  <TouchableOpacity style={[styles.iconBtn, styles.iconBtnAlert]} onPress={() => setConfirmBulk(true)}>
+                    <TrashIcon color={COLOURS.alert} />
+                  </TouchableOpacity>
+                )
+              ) : (
+                <View style={styles.iconBtn} />
+              )}
+            </>
+          ) : searchActive ? (
+            /* ── Search header ── */
+            <>
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search promises…"
+                placeholderTextColor={COLOURS.textMuted}
+                selectionColor={COLOURS.coffee2}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                autoFocus
+              />
+              <TouchableOpacity style={styles.iconBtn} onPress={() => { setSearchActive(false); setSearchQuery(''); }}>
+                <XIcon color={COLOURS.coffee1} />
+              </TouchableOpacity>
+            </>
+          ) : (
+            /* ── Default header ── */
+            <>
+              <View style={styles.logoBlock}>
+                <Text style={styles.bear}>🐻</Text>
+                <View style={styles.titleSub}>
+                  <View style={styles.checkbox}>
+                    <Text style={styles.checkmark}>✓</Text>
+                  </View>
+                  <Text style={styles.withMe}>with me</Text>
+                </View>
+              </View>
+              <View style={styles.headerCenter}>
+                <Text style={styles.headerDate}>
+                  {new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long' })}
+                </Text>
+                <Text style={styles.headerSub}>{pendingCount} promises · {overdueCount} overdue</Text>
+              </View>
+              <View style={styles.headerRight}>
+                <TouchableOpacity style={styles.iconBtn} onPress={() => setSearchActive(true)}>
+                  <SearchIcon color={COLOURS.coffee1} />
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.iconBtn} onPress={() => { setSelectMode(true); setSelectedIds([]); }}>
+                  <TrashIcon color={COLOURS.coffee1} />
+                </TouchableOpacity>
+              </View>
+            </>
+          )}
         </BlurView>
 
         {/* List */}
@@ -423,77 +530,46 @@ export default function HomeScreen() {
             </View>
           ) : (
             <>
-              {/* Urgency filter chips */}
-              <View style={styles.filterRow}>
-                {([0, 1, 2, 3] as const).map(u => {
-                  const active = urgencyFilter.includes(u);
-                  return (
-                    <TouchableOpacity
-                      key={u}
-                      style={[styles.filterChip, active && styles.filterChipActive]}
-                      onPress={() => toggleFilter(u)}
-                      activeOpacity={0.75}
-                    >
-                      <Text style={[styles.filterFlame, u === 0 && !active && styles.filterFlameFaded]}>
-                        {FLAME_MAP[u]}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
+              {/* Urgency filter chips — hidden during search */}
+              {!searchActive && (
+                <View style={styles.filterRow}>
+                  {([0, 1, 2, 3] as const).map(u => {
+                    const active = urgencyFilter.includes(u);
+                    return (
+                      <TouchableOpacity
+                        key={u}
+                        style={[styles.filterChip, active && styles.filterChipActive]}
+                        onPress={() => toggleFilter(u)}
+                        activeOpacity={0.75}
+                      >
+                        <Text style={[styles.filterFlame, u === 0 && !active && styles.filterFlameFaded]}>
+                          {FLAME_MAP[u]}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              )}
 
-              {/* Sections — key includes sort state so React remounts on toggle */}
-              <Section
-                key={`overdue-${sortedSections.includes('overdue')}`}
-                title="Overdue" sectionKey="overdue"
-                items={filteredGroups.overdue}
-                sorted={sortedSections.includes('overdue')}
-                collapsed={collapsedSections.includes('overdue')}
-                onToggleSort={() => toggleSort('overdue')}
-                onToggleCollapse={() => toggleCollapse('overdue')}
-                onPress={pushGrade}
-                onLongPress={setActivePromise}
-              />
-              <Section
-                key={`thisWeek-${sortedSections.includes('thisWeek')}`}
-                title="This week" sectionKey="thisWeek"
-                items={filteredGroups.thisWeek}
-                sorted={sortedSections.includes('thisWeek')}
-                collapsed={collapsedSections.includes('thisWeek')}
-                onToggleSort={() => toggleSort('thisWeek')}
-                onToggleCollapse={() => toggleCollapse('thisWeek')}
-                onPress={pushGrade}
-                onLongPress={setActivePromise}
-              />
-              <Section
-                key={`upcoming-${sortedSections.includes('upcoming')}`}
-                title="Upcoming" sectionKey="upcoming"
-                items={filteredGroups.upcoming}
-                sorted={sortedSections.includes('upcoming')}
-                collapsed={collapsedSections.includes('upcoming')}
-                onToggleSort={() => toggleSort('upcoming')}
-                onToggleCollapse={() => toggleCollapse('upcoming')}
-                onPress={pushGrade}
-                onLongPress={setActivePromise}
-              />
-              <Section
-                key={`kept-${sortedSections.includes('kept')}`}
-                title="Recently kept" sectionKey="kept"
-                items={filteredGroups.kept}
-                sorted={sortedSections.includes('kept')}
-                collapsed={collapsedSections.includes('kept')}
-                onToggleSort={() => toggleSort('kept')}
-                onToggleCollapse={() => toggleCollapse('kept')}
-                onPress={() => {}}
-                onLongPress={setActivePromise}
-              />
+              <Section key={`overdue-${sortedSections.includes('overdue')}`}
+                title="Overdue" sectionKey="overdue" items={filteredGroups.overdue}
+                onPress={pushGrade} onLongPress={setActivePromise} {...sectionProps('overdue')} />
+              <Section key={`thisWeek-${sortedSections.includes('thisWeek')}`}
+                title="This week" sectionKey="thisWeek" items={filteredGroups.thisWeek}
+                onPress={pushGrade} onLongPress={setActivePromise} {...sectionProps('thisWeek')} />
+              <Section key={`upcoming-${sortedSections.includes('upcoming')}`}
+                title="Upcoming" sectionKey="upcoming" items={filteredGroups.upcoming}
+                onPress={pushGrade} onLongPress={setActivePromise} {...sectionProps('upcoming')} />
+              <Section key={`kept-${sortedSections.includes('kept')}`}
+                title="Recently kept" sectionKey="kept" items={filteredGroups.kept}
+                onPress={() => {}} onLongPress={setActivePromise} {...sectionProps('kept')} />
             </>
           )}
         </ScrollView>
 
       </SafeAreaView>
 
-      {activePromise && (
+      {activePromise && !selectMode && (
         <CardActionSheet
           promise={activePromise}
           onClose={() => setActivePromise(null)}
@@ -503,9 +579,11 @@ export default function HomeScreen() {
         />
       )}
 
-      <TouchableOpacity style={[styles.fab, { bottom: fabBottom }]} onPress={pushAdd} activeOpacity={0.85}>
-        <Text style={styles.fabPlus}>+</Text>
-      </TouchableOpacity>
+      {!selectMode && (
+        <TouchableOpacity style={[styles.fab, { bottom: fabBottom }]} onPress={pushAdd} activeOpacity={0.85}>
+          <Text style={styles.fabPlus}>+</Text>
+        </TouchableOpacity>
+      )}
 
     </View>
   );
@@ -543,6 +621,40 @@ const styles = StyleSheet.create({
     backgroundColor: COLOURS.glass, borderWidth: 1, borderColor: COLOURS.glassBorder,
     alignItems: 'center', justifyContent: 'center',
   },
+  iconBtnAlert: { borderColor: COLOURS.alert },
+
+  // Search bar
+  searchInput: {
+    flex: 1, marginRight: 10,
+    paddingVertical: 9, paddingHorizontal: 14,
+    backgroundColor: COLOURS.glass, borderWidth: 1, borderColor: COLOURS.glassBorder,
+    borderRadius: 12, fontFamily: FONTS.body, fontSize: SIZES.bodySmall, color: COLOURS.text,
+  },
+
+  // Select mode
+  bulkConfirm:    { flexDirection: 'row', gap: 8 },
+  bulkKeepBtn: {
+    paddingVertical: 8, paddingHorizontal: 14,
+    backgroundColor: COLOURS.glass, borderWidth: 1, borderColor: COLOURS.glassBorder,
+    borderRadius: 12,
+  },
+  bulkKeepText:   { fontFamily: FONTS.bodyBold, fontSize: SIZES.label, color: COLOURS.textMuted },
+  bulkDeleteBtn: {
+    paddingVertical: 8, paddingHorizontal: 14,
+    backgroundColor: COLOURS.alert, borderRadius: 12,
+  },
+  bulkDeleteText: { fontFamily: FONTS.bodyBold, fontSize: SIZES.label, color: '#fff' },
+
+  // Card select state
+  cardSelected: { opacity: 1, borderColor: COLOURS.alert },
+  selectBox: {
+    width: 22, height: 22, borderRadius: 6, margin: 12,
+    borderWidth: 2, borderColor: COLOURS.textDim,
+    backgroundColor: 'transparent',
+    alignSelf: 'center', alignItems: 'center', justifyContent: 'center',
+  },
+  selectBoxChecked: { backgroundColor: COLOURS.alert, borderColor: COLOURS.alert },
+  selectCheck:      { color: '#fff', fontSize: 13, fontWeight: '700' },
 
   main:        { flex: 1, paddingHorizontal: 14, paddingTop: 12 },
   mainContent: { paddingBottom: 140 },
@@ -574,7 +686,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLOURS.glass, borderWidth: 1, borderColor: COLOURS.glassBorder,
     borderRadius: 20, paddingHorizontal: 9, paddingVertical: 2,
   },
-  sectionPillText: { fontFamily: FONTS.body, fontSize: SIZES.label, fontWeight: '700', color: COLOURS.textMuted },
+  sectionPillText:  { fontFamily: FONTS.body, fontSize: SIZES.label, fontWeight: '700', color: COLOURS.textMuted },
   collapseChevron:  { fontSize: SIZES.cardTitle, fontWeight: '700', color: COLOURS.coffee1, marginLeft: 2, lineHeight: SIZES.cardTitle },
   sortBtn: {
     marginLeft: 'auto', paddingVertical: 3, paddingHorizontal: 9,
