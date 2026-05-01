@@ -636,7 +636,7 @@ const egg = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center', padding: 32,
   },
   card: {
-    backgroundColor: MODAL_GLASS_BG, borderRadius: 28, padding: 28, alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.88)', borderRadius: 28, padding: 28, alignItems: 'center',
     borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.90)',
     shadowColor: '#6F4E37', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.12, shadowRadius: 18, elevation: 8,
     width: '100%',
