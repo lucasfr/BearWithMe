@@ -170,12 +170,10 @@ export default function CalendarScreen() {
     const filtered = new Map<string, DayData>();
     calData.forEach((data, date) => {
       const show =
-        (activeFilters.includes('urgency1') && data.due.some(p => p.urgency === 1)) ||
-        (activeFilters.includes('urgency2') && data.due.some(p => p.urgency === 2)) ||
-        (activeFilters.includes('urgency3') && data.due.some(p => p.urgency === 3)) ||
-        (activeFilters.includes('kept')     && data.kept.length > 0) ||
-        (activeFilters.includes('felt')     && data.kept.some(p => p.scoreHowFelt)) ||
-        (activeFilters.includes('made')     && data.created.length > 0);
+        (activeFilters.includes('due')  && data.due.length > 0) ||
+        (activeFilters.includes('kept') && data.kept.length > 0) ||
+        (activeFilters.includes('felt') && data.kept.some(p => p.scoreHowFelt && p.scoreHowFelt > 0)) ||
+        (activeFilters.includes('made') && data.created.length > 0);
       if (show) filtered.set(date, data);
     });
     return filtered;
@@ -256,12 +254,10 @@ export default function CalendarScreen() {
           {/* Filter chips */}
           <View style={styles.filterRow}>
             {[
-              { key: 'urgency1', label: '🔥'    },
-              { key: 'urgency2', label: '🔥🔥'   },
-              { key: 'urgency3', label: '🔥🔥🔥'  },
-              { key: 'kept',     label: '🐻'    },
-              { key: 'felt',     label: '❤️'    },
-              { key: 'made',     label: '📝'    },
+              { key: 'due',  label: '🔥' },
+              { key: 'kept', label: '🐻' },
+              { key: 'felt', label: '❤️' },
+              { key: 'made', label: '📝' },
             ].map(f => {
               const active = activeFilters.includes(f.key);
               return (
