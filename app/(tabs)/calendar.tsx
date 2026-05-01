@@ -2,6 +2,7 @@ import { useMemo, useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity, Modal, Platform,
 } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
 import Svg, { Circle, Rect, Defs, Pattern } from 'react-native-svg';
@@ -45,9 +46,12 @@ function buildCalendarData(promises: BwmPromise[]): Map<string, DayData> {
   };
 
   const resolveDeadline = (p: BwmPromise): string | null => {
-    if (p.specificDate) return p.specificDate;
+    // Only use specificDate if it looks like a valid ISO date (YYYY-MM-DD)
+    if (p.specificDate && /^\d{4}-\d{2}-\d{2}$/.test(p.specificDate)) {
+      return p.specificDate;
+    }
     const created = new Date(p.createdAt);
-    if (p.fuzzyDeadline === 'this-week') {
+    if (p.fuzzyDeadline === 'this-week' || p.fuzzyDeadline === 'specific') {
       // End of the week (Sunday) from the week it was created
       const d = new Date(created);
       const daysUntilSunday = (7 - d.getDay()) % 7 || 7;
@@ -59,7 +63,7 @@ function buildCalendarData(promises: BwmPromise[]): Map<string, DayData> {
       const d = new Date(created.getFullYear(), created.getMonth() + 1, 0);
       return isoDate(d);
     }
-    return null; // 'none' — no deadline to show
+    return null; // 'none'
   };
 
   promises.forEach(p => {
@@ -111,7 +115,12 @@ function DayIndicators({ data }: { data: DayData }) {
 }
 
 // ── Day detail sheet ───────────────────────────────────────────────────────
-function DaySheet({ date, data, onClose }: { date: string; data: DayData | undefined; onClose: () => void }) {
+function DaySheet({ date, data, onClose, onPickDate }: {
+  date: string;
+  data: DayData | undefined;
+  onClose: () => void;
+  onPickDate: (promise: BwmPromise) => void;
+}) {
   const insets = useSafeAreaInsets();
   const d = new Date(date + 'T12:00:00');
   const label = d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
@@ -152,7 +161,12 @@ function DaySheet({ date, data, onClose }: { date: string; data: DayData | undef
                     <View style={ds.itemBody}>
                       <Text style={ds.itemText} numberOfLines={2}>{p.text}</Text>
                       <View style={ds.itemMeta}>
-                        {isDue  && <Text style={ds.tag}>📅 due</Text>}
+                        {isDue  && <Text style={ds.tag}>📅 {p.specificDate && !/^\d{4}-\d{2}-\d{2}$/.test(p.specificDate) ? p.specificDate : 'due'}</Text>}
+                        {isDue && (!p.specificDate || !/^\d{4}-\d{2}-\d{2}$/.test(p.specificDate)) && (
+                          <TouchableOpacity onPress={() => onPickDate(p)}>
+                            <Text style={[ds.tag, ds.setDateTag]}>📆 set date</Text>
+                          </TouchableOpacity>
+                        )}
                         {isKept && <Text style={ds.tag}>✓ kept</Text>}
                         {isMade && <Text style={ds.tag}>📝 made</Text>}
                         {isKept && !!p.scoreHowWell  && <Text style={ds.tag}>🐻 {p.scoreHowWell}/5</Text>}
@@ -180,6 +194,10 @@ export default function CalendarScreen() {
   const [year,  setYear]  = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [pickingPromise, setPickingPromise] = useState<BwmPromise | null>(null);
+  const [pickerDate,    setPickerDate]    = useState(new Date());
+
+  const { updatePromise } = usePromises();
 
   const calData = useMemo(() => buildCalendarData(promises), [promises]);
 
@@ -310,7 +328,42 @@ export default function CalendarScreen() {
           date={selectedDate}
           data={selectedData}
           onClose={() => setSelectedDate(null)}
+          onPickDate={p => {
+            setPickingPromise(p);
+            setPickerDate(new Date());
+          }}
         />
+      )}
+
+      {/* Date picker */}
+      {pickingPromise && (
+        <Modal transparent animationType="fade" onRequestClose={() => setPickingPromise(null)}>
+          <View style={picker.backdrop}>
+            <BlurView intensity={60} tint="light" style={picker.card}>
+              <Text style={picker.title}>Set a date</Text>
+              <Text style={picker.sub} numberOfLines={2}>{pickingPromise.text}</Text>
+              <DateTimePicker
+                value={pickerDate}
+                mode="date"
+                display="spinner"
+                onChange={(_, date) => { if (date) setPickerDate(date); }}
+                style={picker.datepicker}
+                textColor={COLOURS.text}
+              />
+              <View style={picker.btnRow}>
+                <TouchableOpacity style={picker.cancelBtn} onPress={() => setPickingPromise(null)}>
+                  <Text style={picker.cancelText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={picker.confirmBtn} onPress={async () => {
+                  await updatePromise({ ...pickingPromise, specificDate: isoDate(pickerDate), fuzzyDeadline: 'specific' });
+                  setPickingPromise(null);
+                }}>
+                  <Text style={picker.confirmText}>Set date</Text>
+                </TouchableOpacity>
+              </View>
+            </BlurView>
+          </View>
+        </Modal>
       )}
 
     </View>
