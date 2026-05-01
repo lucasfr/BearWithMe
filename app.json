@@ -7,20 +7,17 @@
     "icon": "./assets/images/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/images/icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#EEF4FA"
+      "backgroundColor": "#F5EFE6"
     },
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.circadia.bearwithme",
-      "simulator": "iPhone 16 Pro",
       "icon": "./assets/images/icon.png"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#EEF4FA"
+        "backgroundColor": "#F5EFE6"
       },
       "package": "com.circadia.bearwithme"
     },
