@@ -322,10 +322,10 @@ const styles = StyleSheet.create({
   dayHeaders: { flexDirection: 'row', marginBottom: 6 },
   dayHeader:  { flex: 1, textAlign: 'center', fontFamily: FONTS.bodyBold, fontSize: 10, letterSpacing: 0.6, textTransform: 'uppercase', color: COLOURS.textMuted },
   grid:     { flexDirection: 'row', flexWrap: 'wrap' },
-  cell:     { width: '14.285%', aspectRatio: 0.85, alignItems: 'center', justifyContent: 'flex-start', paddingTop: 6, paddingBottom: 4, borderRadius: 10 },
+  cell:     { width: '14.285%', aspectRatio: 0.65, alignItems: 'center', justifyContent: 'flex-start', paddingTop: 8, paddingBottom: 4, borderRadius: 10 },
   cellToday:    { backgroundColor: 'rgba(111,78,55,0.12)', borderWidth: 1.5, borderColor: COLOURS.coffee2 },
   cellSelected: { backgroundColor: 'rgba(166,123,91,0.22)', borderWidth: 1.5, borderColor: COLOURS.coffee1 },
-  dayNum:          { fontFamily: FONTS.body, fontSize: SIZES.label, color: COLOURS.text, fontWeight: '500' },
+  dayNum:          { fontFamily: FONTS.body, fontSize: SIZES.bodySmall, color: COLOURS.text, fontWeight: '500' },
   dayNumToday:     { color: COLOURS.coffee1, fontWeight: '700' },
   dayNumSelected:  { color: COLOURS.coffee1, fontWeight: '700' },
   legend:      { flexDirection: 'row', justifyContent: 'center', gap: 20, marginTop: 20, paddingVertical: 12, backgroundColor: 'rgba(255,255,255,0.55)', borderWidth: 1, borderColor: COLOURS.glassBorder, borderRadius: RADIUS.pill },
@@ -337,7 +337,7 @@ const styles = StyleSheet.create({
 
 const ind = StyleSheet.create({
   row:   { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 1, marginTop: 2 },
-  emoji: { fontSize: 8, lineHeight: 10 },
+  emoji: { fontSize: 10, lineHeight: 13 },
   dot:   { width: 5, height: 5, borderRadius: 3, backgroundColor: COLOURS.coffee2, marginTop: 3 },
 });
 
