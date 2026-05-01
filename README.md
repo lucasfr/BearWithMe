@@ -1,6 +1,6 @@
 # 🐻 Bear with Me
 
-**A quiet, low-pressure promise tracker built for people who care deeply and sometimes struggle to follow through.**
+**A quiet, private, low-pressure promise tracker built for people who care and sometimes struggle to follow through.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![Built with Expo](https://img.shields.io/badge/Built%20with-Expo-000020?logo=expo&logoColor=white)](https://expo.dev)
@@ -12,7 +12,7 @@
 
 ## 📖 What is Bear with Me?
 
-Bear with Me is an autism-inspired promise tracker built for people whose executive function sometimes gets in the way of follow-through — not because they don't care, but because their brain is just wired differently.
+Bear with Me is a promise tracker built for people whose executive function sometimes gets in the way of follow-through. Not because they don't care, but because their brain is just wired differently.
 
 You log a promise, set how urgent it feels, and when you keep it, you grade it on two simple scales:
 
