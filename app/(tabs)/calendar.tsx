@@ -20,12 +20,8 @@ function isoDate(d: Date) { return d.toISOString().split('T')[0]; }
 function startOfMonth(y: number, m: number) { return new Date(y, m, 1); }
 function dayIndex(d: Date) { return (d.getDay() + 6) % 7; }
 
-// ── Day cell data ──────────────────────────────────────────────────────────
 interface DayData {
-  date:    string;
-  due:     BwmPromise[];
-  kept:    BwmPromise[];
-  created: BwmPromise[];
+  date: string; due: BwmPromise[]; kept: BwmPromise[]; created: BwmPromise[];
 }
 
 function buildCalendarData(promises: BwmPromise[]): Map<string, DayData> {
@@ -34,7 +30,6 @@ function buildCalendarData(promises: BwmPromise[]): Map<string, DayData> {
     if (!map.has(date)) map.set(date, { date, due: [], kept: [], created: [] });
     return map.get(date)!;
   };
-
   const resolveDeadline = (p: BwmPromise): string | null => {
     if (p.specificDate && /^\d{4}-\d{2}-\d{2}$/.test(p.specificDate)) return p.specificDate;
     const created = new Date(p.createdAt);
@@ -44,12 +39,10 @@ function buildCalendarData(promises: BwmPromise[]): Map<string, DayData> {
       d.setDate(d.getDate() + daysUntilSunday);
       return isoDate(d);
     }
-    if (p.fuzzyDeadline === 'this-month') {
+    if (p.fuzzyDeadline === 'this-month')
       return isoDate(new Date(created.getFullYear(), created.getMonth() + 1, 0));
-    }
     return null;
   };
-
   promises.forEach(p => {
     const deadline = resolveDeadline(p);
     if (deadline) get(deadline).due.push(p);
@@ -59,7 +52,6 @@ function buildCalendarData(promises: BwmPromise[]): Map<string, DayData> {
   return map;
 }
 
-// ── Day indicators ─────────────────────────────────────────────────────────
 function DayIndicators({ data }: { data: DayData }) {
   const hasDue = data.due.length > 0, hasKept = data.kept.length > 0, hasCreated = data.created.length > 0;
   if (!hasDue && !hasKept && !hasCreated) return null;
@@ -76,14 +68,12 @@ function DayIndicators({ data }: { data: DayData }) {
   );
 }
 
-// ── Day sheet ──────────────────────────────────────────────────────────────
 function DaySheet({ date, data, onClose, onPickDate }: {
   date: string; data: DayData | undefined;
   onClose: () => void; onPickDate: (p: BwmPromise) => void;
 }) {
   const insets = useSafeAreaInsets();
   const label = new Date(date + 'T12:00:00').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
-
   const all = useMemo(() => {
     const seen = new Set<string>(), arr: BwmPromise[] = [];
     [...(data?.due??[]),...(data?.kept??[]),...(data?.created??[])].forEach(p => {
@@ -140,7 +130,6 @@ function DaySheet({ date, data, onClose, onPickDate }: {
   );
 }
 
-// ── Calendar screen ────────────────────────────────────────────────────────
 export default function CalendarScreen() {
   const { promises, updatePromise } = usePromises();
   const today    = new Date();
@@ -180,8 +169,6 @@ export default function CalendarScreen() {
 
   return (
     <View style={styles.root}>
-
-      {/* Dot grid */}
       <View style={StyleSheet.absoluteFill} pointerEvents="none">
         <Svg width="100%" height="100%" style={StyleSheet.absoluteFill}>
           <Defs>
@@ -194,7 +181,6 @@ export default function CalendarScreen() {
       </View>
 
       <SafeAreaView style={styles.safeArea} edges={['top']}>
-
         <BlurView intensity={60} tint="light" style={styles.header}>
           <Text style={styles.headerTitle}>Calendar</Text>
           <Text style={styles.headerSub}>
@@ -208,8 +194,6 @@ export default function CalendarScreen() {
         </BlurView>
 
         <ScrollView style={styles.main} contentContainerStyle={styles.mainContent} showsVerticalScrollIndicator={false}>
-
-          {/* Month nav */}
           <View style={styles.nav}>
             <TouchableOpacity style={styles.navBtn} onPress={prevMonth} activeOpacity={0.7}>
               <Text style={styles.navArrow}>‹</Text>
@@ -220,12 +204,10 @@ export default function CalendarScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Day headers */}
           <View style={styles.dayHeaders}>
             {DAYS.map(d => <Text key={d} style={styles.dayHeader}>{d}</Text>)}
           </View>
 
-          {/* Grid */}
           <View style={styles.grid}>
             {grid.map((day, i) => {
               if (day === null) return <View key={`e${i}`} style={styles.cell}/>;
@@ -249,18 +231,15 @@ export default function CalendarScreen() {
             })}
           </View>
 
-          {/* Legend */}
           <View style={styles.legend}>
             <View style={styles.legendItem}><Text style={styles.legendEmoji}>🔥</Text><Text style={styles.legendText}>due</Text></View>
             <View style={styles.legendItem}><Text style={styles.legendEmoji}>🐻</Text><Text style={styles.legendText}>kept</Text></View>
             <View style={styles.legendItem}><Text style={styles.legendEmoji}>❤️</Text><Text style={styles.legendText}>felt</Text></View>
             <View style={styles.legendItem}><View style={styles.legendDot}/><Text style={styles.legendText}>made</Text></View>
           </View>
-
         </ScrollView>
       </SafeAreaView>
 
-      {/* Day sheet */}
       {selectedDate && (
         <DaySheet
           date={selectedDate}
@@ -270,7 +249,7 @@ export default function CalendarScreen() {
         />
       )}
 
-      {/* Date picker modal */}
+      {/* Date picker modal — BlurView card matching other modals */}
       {pickingPromise && (
         <Modal transparent animationType="fade" onRequestClose={() => setPickingPromise(null)}>
           <View style={pk.backdrop}>
@@ -297,12 +276,10 @@ export default function CalendarScreen() {
           </View>
         </Modal>
       )}
-
     </View>
   );
 }
 
-// ── Styles ─────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   root:     { flex: 1, backgroundColor: COLOURS.bg },
   safeArea: { flex: 1 },
@@ -363,8 +340,18 @@ const ds = StyleSheet.create({
 });
 
 const pk = StyleSheet.create({
-  backdrop:    { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(44,26,14,0.45)', alignItems: 'center', justifyContent: 'center', padding: 32 },
-  card:        { width: '100%', borderRadius: 28, padding: 24, alignItems: 'center', borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.80)', shadowColor: '#6F4E37', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.12, shadowRadius: 18, elevation: 8 },
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(44,26,14,0.45)',
+    alignItems: 'center', justifyContent: 'center', padding: 32,
+  },
+  card: {
+    width: '100%', borderRadius: 28, overflow: 'hidden',
+    borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.80)',
+    shadowColor: '#6F4E37', shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.12, shadowRadius: 18, elevation: 8,
+    padding: 24, alignItems: 'center',
+  },
   title:       { fontFamily: FONTS.headingItalic, fontSize: SIZES.screenTitle, color: COLOURS.text, marginBottom: 6 },
   sub:         { fontFamily: FONTS.bodyItalic, fontSize: SIZES.bodySmall, color: COLOURS.textMuted, textAlign: 'center', marginBottom: 8 },
   datepicker:  { width: '100%', marginBottom: 16 },
