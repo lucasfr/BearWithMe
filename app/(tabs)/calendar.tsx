@@ -165,16 +165,16 @@ export default function CalendarScreen() {
     return cells;
   }, [year, month]);
 
-  // Filter grid cells based on active filters
+  // Filter: only hide days if filters active AND day has none of the selected types
   const filteredCalData = useMemo(() => {
     if (activeFilters.length === 0) return calData;
     const filtered = new Map<string, DayData>();
     calData.forEach((data, date) => {
       const show =
-        (activeFilters.includes('due')   && data.due.length > 0) ||
-        (activeFilters.includes('kept')  && data.kept.length > 0) ||
-        (activeFilters.includes('felt')  && data.kept.some(p => p.scoreHowFelt)) ||
-        (activeFilters.includes('made')  && data.created.length > 0);
+        (activeFilters.includes('due')  && data.due.length > 0) ||
+        (activeFilters.includes('kept') && data.kept.length > 0) ||
+        (activeFilters.includes('felt') && data.kept.some(p => p.scoreHowFelt)) ||
+        (activeFilters.includes('made') && data.created.length > 0);
       if (show) filtered.set(date, data);
     });
     return filtered;
@@ -343,11 +343,15 @@ const styles = StyleSheet.create({
   dayNum:          { fontFamily: FONTS.body, fontSize: SIZES.bodySmall, color: COLOURS.text, fontWeight: '500' },
   dayNumToday:     { color: COLOURS.coffee1, fontWeight: '700' },
   dayNumSelected:  { color: COLOURS.coffee1, fontWeight: '700' },
-  filterRow:         { flexDirection: 'row', gap: 8, marginTop: 16, flexWrap: 'wrap' },
-  filterChip:         { flex: 1, paddingVertical: 10, alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.55)', borderWidth: 1, borderColor: COLOURS.glassBorder, borderRadius: 30, shadowColor: '#6F4E37', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 6, elevation: 2 },
-  filterChipActive:   { backgroundColor: 'rgba(166,123,91,0.28)', borderColor: COLOURS.coffee2 },
-  filterChipText:     { fontFamily: FONTS.bodyBold, fontSize: SIZES.label, color: COLOURS.textMuted },
-  filterChipTextActive: { color: COLOURS.coffee1 },
+  filterRow:           { flexDirection: 'row', gap: 8, marginTop: 16, marginBottom: 4 },
+  filterChip:           {
+    paddingVertical: 8, paddingHorizontal: 14,
+    backgroundColor: COLOURS.glass, borderWidth: 1, borderColor: COLOURS.glassBorder, borderRadius: 30,
+    shadowColor: '#6F4E37', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 6, elevation: 2,
+  },
+  filterChipActive:     { backgroundColor: 'rgba(166,123,91,0.28)' },
+  filterChipText:       { fontSize: SIZES.label, color: COLOURS.text },
+  filterChipTextActive: { opacity: 1 },
 });
 
 const ind = StyleSheet.create({
