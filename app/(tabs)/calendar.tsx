@@ -44,9 +44,28 @@ function buildCalendarData(promises: BwmPromise[]): Map<string, DayData> {
     return map.get(date)!;
   };
 
+  const resolveDeadline = (p: BwmPromise): string | null => {
+    if (p.specificDate) return p.specificDate;
+    const created = new Date(p.createdAt);
+    if (p.fuzzyDeadline === 'this-week') {
+      // End of the week (Sunday) from the week it was created
+      const d = new Date(created);
+      const daysUntilSunday = (7 - d.getDay()) % 7 || 7;
+      d.setDate(d.getDate() + daysUntilSunday);
+      return isoDate(d);
+    }
+    if (p.fuzzyDeadline === 'this-month') {
+      // Last day of the month it was created
+      const d = new Date(created.getFullYear(), created.getMonth() + 1, 0);
+      return isoDate(d);
+    }
+    return null; // 'none' — no deadline to show
+  };
+
   promises.forEach(p => {
-    if (p.specificDate) get(p.specificDate).due.push(p);
-    if (p.keptAt)       get(isoDate(new Date(p.keptAt))).kept.push(p);
+    const deadline = resolveDeadline(p);
+    if (deadline) get(deadline).due.push(p);
+    if (p.keptAt) get(isoDate(new Date(p.keptAt))).kept.push(p);
     get(isoDate(new Date(p.createdAt))).created.push(p);
   });
 
@@ -211,7 +230,10 @@ export default function CalendarScreen() {
         <BlurView intensity={60} tint="light" style={styles.header}>
           <Text style={styles.headerTitle}>Calendar</Text>
           <Text style={styles.headerSub}>
-            {promises.filter(p => p.specificDate?.startsWith(`${year}-${String(month+1).padStart(2,'0')}`)).length} promises this month
+            {promises.filter(p => {
+              const d = p.specificDate ?? (p.keptAt ? isoDate(new Date(p.keptAt)) : isoDate(new Date(p.createdAt)));
+              return d.startsWith(`${year}-${String(month+1).padStart(2,'0')}`);
+            }).length} promises this month
           </Text>
         </BlurView>
 
