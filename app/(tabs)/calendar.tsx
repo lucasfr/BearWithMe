@@ -329,7 +329,12 @@ const ds = StyleSheet.create({
   },
   dayLabel: { fontFamily: FONTS.headingItalic, fontSize: SIZES.cardTitle, color: COLOURS.text, marginBottom: 16 },
   empty:    { fontFamily: FONTS.body, fontSize: SIZES.body, color: COLOURS.textMuted, textAlign: 'center', paddingVertical: 24 },
-  item:     { flexDirection: 'row', backgroundColor: 'rgba(255,255,255,0.72)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.80)', borderRadius: RADIUS.card, marginBottom: 8, overflow: 'hidden', shadowColor: '#6F4E37', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 12, elevation: 3 },
+  item:     {
+    flexDirection: 'row', backgroundColor: COLOURS.entryBg,
+    borderWidth: 1, borderColor: COLOURS.glassBorder,
+    borderRadius: RADIUS.card, marginBottom: 8, overflow: 'hidden',
+    shadowColor: '#6F4E37', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.10, shadowRadius: 8, elevation: 3,
+  },
   stripe:   { width: 5 },
   itemBody: { flex: 1, paddingVertical: 10, paddingHorizontal: 12 },
   itemText: { fontFamily: FONTS.body, fontSize: SIZES.bodySmall, fontWeight: '500', color: COLOURS.text, marginBottom: 6 },
