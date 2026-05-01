@@ -15,7 +15,6 @@ interface WindowData {
   bearAvg: number; heartAvg: number; sub: string;
   labels: string[]; bears: number[]; hearts: number[];
   urgency: { flame: string; faded?: boolean; count: number; pct: number; color: string }[];
-  streak: { num: string; desc: string };
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -93,15 +92,7 @@ function computeWindowData(promises: BwmPromise[], win: Window): WindowData {
     {flame:'🔥',     count:counts[0], pct:made?Math.round(counts[0]/made*100):0, color:COLOURS.textDim, faded:true},
   ];
 
-  // Streak
-  const srt = [...promises].sort((a,b)=>new Date(b.createdAt).getTime()-new Date(a.createdAt).getTime());
-  let streak = 0;
-  for (const p of srt) { if (p.status==='kept') streak++; else break; }
-  const streakData = streak > 0
-    ? {num:`${streak} in a row`, desc: streak>=5?"You're on a roll. Keep going 🐻":`You've kept your last ${streak} promise${streak>1?'s':''}. That matters.`}
-    : {num:'No streak yet', desc:'Keep a promise to start your streak.'};
-
-  return { made, kept:keptN, overdue:overdue.length, keepRate, bearAvg, heartAvg, sub, labels, bears, hearts, urgency, streak:streakData };
+  return { made, kept:keptN, overdue:overdue.length, keepRate, bearAvg, heartAvg, sub, labels, bears, hearts, urgency };
 }
 
 function scoreEmoji(avg: number, filled: string, empty: string) {
@@ -256,15 +247,6 @@ export default function ReportScreen() {
             })}
           </View>
 
-          {/* Streak */}
-          <Text style={styles.sectionLabel}>Streak</Text>
-          <View style={[styles.card, styles.streakCard]}>
-            <Text style={styles.streakBear}>🐻</Text>
-            <View style={{flex:1}}>
-              <Text style={styles.streakNum}>{data.streak.num}</Text>
-              <Text style={styles.streakDesc}>{data.streak.desc}</Text>
-            </View>
-          </View>
 
         </ScrollView>
       </SafeAreaView>
@@ -357,10 +339,7 @@ const styles = StyleSheet.create({
   urgencyCount:      { fontFamily: FONTS.bodyBold, fontSize: SIZES.label, color: COLOURS.textMuted, width: 28, textAlign: 'right' },
   urgencyPct:        { fontFamily: FONTS.body, fontSize: 11, color: COLOURS.textDim, width: 32, textAlign: 'right' },
 
-  streakCard: { flexDirection: 'row', alignItems: 'center', gap: 14 },
-  streakBear: { fontSize: 44, lineHeight: 50 },
-  streakNum:  { fontFamily: FONTS.heading, fontSize: 22, color: COLOURS.text },
-  streakDesc: { fontFamily: FONTS.body, fontSize: SIZES.label, color: COLOURS.textMuted, marginTop: 2, lineHeight: 18 },
+
 });
 
 const chart = StyleSheet.create({

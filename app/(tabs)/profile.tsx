@@ -50,11 +50,6 @@ export default function ProfileScreen() {
   const heartScores = promises.filter(p => p.scoreHowFelt).map(p => p.scoreHowFelt!);
   const avg = (arr: number[]) => arr.length ? (arr.reduce((a,b)=>a+b,0)/arr.length).toFixed(1) : '—';
 
-  // Streak
-  const sorted = [...promises].sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  let streak = 0;
-  for (const p of sorted) { if (p.status === 'kept') streak++; else break; }
-
   // ── Easter egg ────────────────────────────────────────────────────────
   const [bearTaps,  setBearTaps]  = useState(0);
   const [easterEgg, setEasterEgg] = useState(false);
@@ -72,7 +67,6 @@ export default function ProfileScreen() {
     { label: 'Rate',     value: `${keepRate}%`,    emoji: '📊' },
     { label: 'How well', value: avg(bearScores),   emoji: '🐻' },
     { label: 'Felt',     value: avg(heartScores),  emoji: '❤️' },
-    { label: 'Streak',   value: streak > 0 ? `${streak}` : '—', emoji: '🔥' },
   ];
 
   return (
