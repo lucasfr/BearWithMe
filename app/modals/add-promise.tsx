@@ -90,8 +90,8 @@ export default function AddPromiseModal() {
   const [fuzzy,    setFuzzy]    = useState<FuzzyDeadline>(
     existing?.fuzzyDeadline === 'specific' ? 'this-week' : (existing?.fuzzyDeadline ?? 'this-week')
   );
-  const [showDate,       setShowDate]       = useState(existing?.fuzzyDeadline === 'specific');
-  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showDate,    setShowDate]    = useState(existing?.fuzzyDeadline === 'specific');
+  const [expandPicker, setExpandPicker] = useState(false);
   const [specificDate, setSpecificDate] = useState<Date>(
     existing?.specificDate && /^\d{4}-\d{2}-\d{2}$/.test(existing.specificDate)
       ? new Date(existing.specificDate + 'T12:00:00')
@@ -100,6 +100,7 @@ export default function AddPromiseModal() {
   const [context, setContext] = useState(existing?.context ?? '');
 
   const isoDate = (d: Date) => d.toISOString().split('T')[0];
+  const dateLabel = specificDate.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long' });
 
   const handleSubmit = useCallback(async () => {
     if (!text.trim()) return;
@@ -109,9 +110,7 @@ export default function AddPromiseModal() {
     if (isEditing && existing) {
       await updatePromise({
         ...existing,
-        text: text.trim(),
-        urgency,
-        toWhom: who,
+        text: text.trim(), urgency, toWhom: who,
         fuzzyDeadline: showDate ? 'specific' : fuzzy,
         specificDate: deadline,
         context: context.trim() || undefined,
@@ -119,9 +118,7 @@ export default function AddPromiseModal() {
     } else {
       await addPromise({
         id: generateId(),
-        text: text.trim(),
-        urgency,
-        toWhom: who,
+        text: text.trim(), urgency, toWhom: who,
         fuzzyDeadline: showDate ? 'specific' : fuzzy,
         specificDate: deadline,
         context: context.trim() || undefined,
@@ -193,33 +190,56 @@ export default function AddPromiseModal() {
           <View style={styles.whenRow}>
             {WHEN_OPTIONS.map(({ key, label }) => {
               const isActive = key === 'specific' ? showDate : (!showDate && fuzzy === key);
+              // For 'specific', show the date as the chip label when active
+              const chipLabel = (key === 'specific' && showDate) ? `📅 ${dateLabel}` : label;
               return (
                 <TouchableOpacity
                   key={key}
-                  style={[styles.whenChip, isActive && styles.chipActive]}
+                  style={[
+                    styles.whenChip,
+                    isActive && styles.chipActive,
+                    key === 'specific' && showDate && styles.whenChipSpecific,
+                  ]}
                   onPress={() => {
-                    if (key === 'specific') { setShowDate(s => !s); }
-                    else { setFuzzy(key); setShowDate(false); }
+                    if (key === 'specific') {
+                      if (!showDate) {
+                        setShowDate(true);
+                        setExpandPicker(true);
+                      } else {
+                        setExpandPicker(e => !e);
+                      }
+                    } else {
+                      setFuzzy(key);
+                      setShowDate(false);
+                      setExpandPicker(false);
+                    }
                   }}
                 >
-                  <Text style={[styles.whenChipText, isActive && styles.chipTextActive]}>
-                    {label}
+                  <Text style={[
+                    styles.whenChipText,
+                    isActive && styles.chipTextActive,
+                    key === 'specific' && showDate && styles.whenChipSpecificText,
+                  ]}>
+                    {chipLabel}
                   </Text>
                 </TouchableOpacity>
               );
             })}
           </View>
 
-          {showDate && (
-            <TouchableOpacity
-              style={styles.dateChip}
-              onPress={() => setShowDatePicker(true)}
-              activeOpacity={0.75}
-            >
-              <Text style={styles.dateChipText}>
-                📅 {specificDate.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}
-              </Text>
-            </TouchableOpacity>
+          {/* Inline spinner — expands when specific is active and tapped */}
+          {showDate && expandPicker && (
+            <View style={styles.spinnerWrapper}>
+              <DateTimePicker
+                value={specificDate}
+                mode="date"
+                display="compact"
+                onChange={(_, date) => { if (date) { setSpecificDate(date); setExpandPicker(false); } }}
+                style={styles.spinner}
+                textColor={COLOURS.text}
+                accentColor={COLOURS.coffee1}
+              />
+            </View>
           )}
 
           <Text style={styles.label}>
@@ -253,31 +273,6 @@ export default function AddPromiseModal() {
 
         </ScrollView>
       </BlurView>
-
-      {/* Date picker pop-up */}
-      {showDatePicker && (
-        <Modal transparent animationType="fade" onRequestClose={() => setShowDatePicker(false)}>
-          <View style={styles.pickerBackdrop}>
-            <BlurView intensity={60} tint="light" style={styles.pickerCard}>
-              <Text style={styles.pickerTitle}>Pick a date</Text>
-              <DateTimePicker
-                value={specificDate}
-                mode="date"
-                display="spinner"
-                onChange={(_, date) => { if (date) setSpecificDate(date); }}
-                style={styles.pickerWheel}
-                textColor={COLOURS.text}
-              />
-              <TouchableOpacity
-                style={styles.pickerDoneBtn}
-                onPress={() => setShowDatePicker(false)}
-              >
-                <Text style={styles.pickerDoneText}>Done ✓</Text>
-              </TouchableOpacity>
-            </BlurView>
-          </View>
-        </Modal>
-      )}
     </View>
   );
 }
@@ -326,43 +321,29 @@ const styles = StyleSheet.create({
     ...chipShadow,
   },
 
-  whenRow: { flexDirection: 'row', gap: 6, marginBottom: 18 },
+  whenRow: { flexDirection: 'row', gap: 6, marginBottom: 12, flexWrap: 'wrap' },
   whenChip: {
-    flex: 1, paddingVertical: 11, alignItems: 'center',
+    paddingVertical: 11, paddingHorizontal: 14, alignItems: 'center',
     backgroundColor: CHIP_BG, borderRadius: RADIUS.pill,
     ...chipShadow,
   },
-  whenChipText: { fontFamily: FONTS.bodyBold, fontSize: SIZES.bodySmall, color: COLOURS.text },
+  whenChipSpecific:     { backgroundColor: CHIP_ACTIVE_BG, flex: undefined },
+  whenChipText:         { fontFamily: FONTS.bodyBold, fontSize: SIZES.bodySmall, color: COLOURS.text },
+  whenChipSpecificText: { color: COLOURS.coffee1 },
 
-  // Date chip (shows selected date, tappable)
-  dateChip: {
-    backgroundColor: CHIP_BG, borderRadius: RADIUS.pill,
-    paddingVertical: 12, paddingHorizontal: 18,
-    marginBottom: 18, alignSelf: 'flex-start',
+  // Inline spinner
+  spinnerWrapper: {
+    backgroundColor: GLASS_BG, borderRadius: 16,
+    marginBottom: 18,
+    ...inputShadow,
+  },
+  spinner:      { width: '100%' },
+  spinnerDone: {
+    marginHorizontal: 16, marginBottom: 14, paddingVertical: 12,
+    backgroundColor: CHIP_BG, borderRadius: RADIUS.pill, alignItems: 'center',
     ...chipShadow,
   },
-  dateChipText: { fontFamily: FONTS.bodyBold, fontSize: SIZES.bodySmall, color: COLOURS.coffee1 },
-
-  // Date picker modal
-  pickerBackdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(44,26,14,0.45)',
-    alignItems: 'center', justifyContent: 'center', padding: 32,
-  },
-  pickerCard: {
-    width: '100%', borderRadius: 28, padding: 24, alignItems: 'center',
-    borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.80)',
-    shadowColor: '#6F4E37', shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.12, shadowRadius: 18, elevation: 8,
-  },
-  pickerTitle:   { fontFamily: FONTS.headingItalic, fontSize: SIZES.screenTitle, color: COLOURS.text, marginBottom: 8 },
-  pickerWheel:   { width: '100%', marginBottom: 12 },
-  pickerDoneBtn: {
-    alignSelf: 'stretch', paddingVertical: 15, alignItems: 'center',
-    backgroundColor: CHIP_BG, borderRadius: 20,
-    ...chipShadow,
-  },
-  pickerDoneText: { fontFamily: FONTS.bodyBold, fontSize: SIZES.body, color: COLOURS.coffee1 },
+  spinnerDoneText: { fontFamily: FONTS.bodyBold, fontSize: SIZES.bodySmall, color: COLOURS.coffee1 },
 
   actions: { flexDirection: 'row', gap: 10, marginTop: 6, marginBottom: 4 },
   cancelBtn: {
