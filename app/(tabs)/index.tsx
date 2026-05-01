@@ -11,7 +11,7 @@ import { groupPromises, computeStatus } from '../../utils/promise';
 import { Promise as BwmPromise } from '../../types/promise';
 import { COLOURS } from '../../theme/colours';
 import { FONTS, SIZES, RADIUS } from '../../theme/typography';
-import { MODAL_CHIP_BG, MODAL_CHIP_SHADOW, MODAL_HANDLE } from '../../theme/modal';
+import { MODAL_CHIP_BG, MODAL_CHIP_SHADOW, MODAL_HANDLE, MODAL_GLASS_BG } from '../../theme/modal';
 
 const EGG_TEXT = [
   'This app was made for people who care about others and sometimes struggle to follow through; not because they don\'t want to, but because their brain is just wired differently.',
@@ -636,13 +636,18 @@ const egg = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center', padding: 32,
   },
   card: {
-    backgroundColor: 'rgba(255,255,255,0.96)', borderRadius: 28, padding: 28, alignItems: 'center',
-    shadowColor: '#2C1A0E', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.22, shadowRadius: 24, elevation: 16,
+    backgroundColor: MODAL_GLASS_BG, borderRadius: 28, padding: 28, alignItems: 'center',
+    borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.90)',
+    shadowColor: '#6F4E37', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.12, shadowRadius: 18, elevation: 8,
     width: '100%',
   },
   bear:  { fontSize: 64, marginBottom: 12 },
-  title: { fontFamily: FONTS.headingItalic, fontSize: SIZES.cardTitle, color: COLOURS.text, marginBottom: 14, textAlign: 'center' },
-  body:  { fontFamily: FONTS.body, fontSize: SIZES.bodySmall, color: COLOURS.textMuted, lineHeight: 24, textAlign: 'center', marginBottom: 24 },
-  btn:   { paddingVertical: 14, paddingHorizontal: 32, backgroundColor: COLOURS.coffee1, borderRadius: RADIUS.pill },
-  btnText: { fontFamily: FONTS.bodyBold, fontSize: SIZES.body, color: '#fff' },
+  title: { fontFamily: FONTS.headingItalic, fontSize: SIZES.screenTitle, color: COLOURS.text, marginBottom: 14, textAlign: 'center' },
+  body:  { fontFamily: FONTS.body, fontSize: SIZES.bodySmall, color: COLOURS.textMuted, lineHeight: 26, textAlign: 'center', marginBottom: 28 },
+  btn: {
+    alignSelf: 'stretch', paddingVertical: 16, alignItems: 'center',
+    backgroundColor: MODAL_CHIP_BG, borderRadius: 20,
+    shadowColor: '#6F4E37', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.22, shadowRadius: 18, elevation: 8,
+  },
+  btnText: { fontFamily: FONTS.bodyBold, fontSize: SIZES.body, color: COLOURS.coffee1 },
 });
