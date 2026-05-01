@@ -141,6 +141,12 @@ export default function CalendarScreen() {
   const [pickingPromise, setPickingPromise] = useState<BwmPromise | null>(null);
   const [pickerDate,     setPickerDate]     = useState(new Date());
 
+  const [activeFilters, setActiveFilters] = useState<string[]>([]);
+
+  const toggleFilter = useCallback((f: string) => {
+    setActiveFilters(prev => prev.includes(f) ? prev.filter(x => x !== f) : [...prev, f]);
+  }, []);
+
   const calData = useMemo(() => buildCalendarData(promises), [promises]);
 
   const prevMonth = useCallback(() => {
@@ -158,6 +164,21 @@ export default function CalendarScreen() {
     while (cells.length % 7 !== 0) cells.push(null);
     return cells;
   }, [year, month]);
+
+  // Filter grid cells based on active filters
+  const filteredCalData = useMemo(() => {
+    if (activeFilters.length === 0) return calData;
+    const filtered = new Map<string, DayData>();
+    calData.forEach((data, date) => {
+      const show =
+        (activeFilters.includes('due')   && data.due.length > 0) ||
+        (activeFilters.includes('kept')  && data.kept.length > 0) ||
+        (activeFilters.includes('felt')  && data.kept.some(p => p.scoreHowFelt)) ||
+        (activeFilters.includes('made')  && data.created.length > 0);
+      if (show) filtered.set(date, data);
+    });
+    return filtered;
+  }, [calData, activeFilters]);
 
   const selectedData = selectedDate ? calData.get(selectedDate) : undefined;
 
@@ -214,7 +235,7 @@ export default function CalendarScreen() {
               const dateStr  = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
               const isToday    = dateStr === todayStr;
               const isSelected = dateStr === selectedDate;
-              const data       = calData.get(dateStr);
+              const data = filteredCalData.get(dateStr);
               return (
                 <TouchableOpacity
                   key={dateStr}
@@ -231,11 +252,28 @@ export default function CalendarScreen() {
             })}
           </View>
 
-          <View style={styles.legend}>
-            <View style={styles.legendItem}><Text style={styles.legendEmoji}>🔥</Text><Text style={styles.legendText}>due</Text></View>
-            <View style={styles.legendItem}><Text style={styles.legendEmoji}>🐻</Text><Text style={styles.legendText}>kept</Text></View>
-            <View style={styles.legendItem}><Text style={styles.legendEmoji}>❤️</Text><Text style={styles.legendText}>felt</Text></View>
-            <View style={styles.legendItem}><View style={styles.legendDot}/><Text style={styles.legendText}>made</Text></View>
+          {/* Filter chips */}
+          <View style={styles.filterRow}>
+            {[
+              { key: 'due',  label: '🔥 due'  },
+              { key: 'kept', label: '🐻 kept' },
+              { key: 'felt', label: '❤️ felt' },
+              { key: 'made', label: '📝 made' },
+            ].map(f => {
+              const active = activeFilters.includes(f.key);
+              return (
+                <TouchableOpacity
+                  key={f.key}
+                  style={[styles.filterChip, active && styles.filterChipActive]}
+                  onPress={() => toggleFilter(f.key)}
+                  activeOpacity={0.75}
+                >
+                  <Text style={[styles.filterChipText, active && styles.filterChipTextActive]}>
+                    {f.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
         </ScrollView>
       </SafeAreaView>
@@ -305,11 +343,11 @@ const styles = StyleSheet.create({
   dayNum:          { fontFamily: FONTS.body, fontSize: SIZES.bodySmall, color: COLOURS.text, fontWeight: '500' },
   dayNumToday:     { color: COLOURS.coffee1, fontWeight: '700' },
   dayNumSelected:  { color: COLOURS.coffee1, fontWeight: '700' },
-  legend:      { flexDirection: 'row', justifyContent: 'center', gap: 20, marginTop: 20, paddingVertical: 12, backgroundColor: 'rgba(255,255,255,0.55)', borderWidth: 1, borderColor: COLOURS.glassBorder, borderRadius: RADIUS.pill },
-  legendItem:  { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  legendEmoji: { fontSize: 14 },
-  legendDot:   { width: 8, height: 8, borderRadius: 4, backgroundColor: COLOURS.coffee2 },
-  legendText:  { fontFamily: FONTS.body, fontSize: SIZES.label, color: COLOURS.textMuted },
+  filterRow:         { flexDirection: 'row', gap: 8, marginTop: 16, flexWrap: 'wrap' },
+  filterChip:         { flex: 1, paddingVertical: 10, alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.55)', borderWidth: 1, borderColor: COLOURS.glassBorder, borderRadius: 30, shadowColor: '#6F4E37', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 6, elevation: 2 },
+  filterChipActive:   { backgroundColor: 'rgba(166,123,91,0.28)', borderColor: COLOURS.coffee2 },
+  filterChipText:     { fontFamily: FONTS.bodyBold, fontSize: SIZES.label, color: COLOURS.textMuted },
+  filterChipTextActive: { color: COLOURS.coffee1 },
 });
 
 const ind = StyleSheet.create({
