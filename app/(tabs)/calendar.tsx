@@ -52,18 +52,25 @@ function buildCalendarData(promises: BwmPromise[]): Map<string, DayData> {
   return map;
 }
 
-function DayIndicators({ data }: { data: DayData }) {
-  const hasDue = data.due.length > 0, hasKept = data.kept.length > 0, hasCreated = data.created.length > 0;
+function DayIndicators({ data, activeFilters }: { data: DayData; activeFilters: string[] }) {
+  const hasDue     = data.due.length > 0;
+  const hasKept    = data.kept.length > 0;
+  const hasCreated = data.created.length > 0;
   if (!hasDue && !hasKept && !hasCreated) return null;
   const maxUrgency = hasDue ? Math.max(...data.due.map(p => p.urgency)) : 0;
   const bearAvg  = hasKept ? data.kept.filter(p=>p.scoreHowWell).reduce((a,p,_,arr)=>a+(p.scoreHowWell??0)/arr.length,0) : 0;
   const heartAvg = hasKept ? data.kept.filter(p=>p.scoreHowFelt).reduce((a,p,_,arr)=>a+(p.scoreHowFelt??0)/arr.length,0) : 0;
+  const noFilter = activeFilters.length === 0;
+  const showFlame = noFilter || activeFilters.includes('due');
+  const showBear  = noFilter || activeFilters.includes('kept');
+  const showHeart = noFilter || activeFilters.includes('felt');
+  const showDot   = noFilter || activeFilters.includes('made');
   return (
     <View style={ind.row}>
-      {hasDue  && <Text style={[ind.emoji,{opacity:maxUrgency===0?0.35:1}]}>{FLAME_MAP[maxUrgency]}</Text>}
-      {hasKept && <Text style={[ind.emoji,{opacity:bearAvg>0?0.7+bearAvg*0.06:0.4}]}>🐻</Text>}
-      {hasKept && <Text style={[ind.emoji,{opacity:heartAvg>0?0.7+heartAvg*0.06:0.4}]}>❤️</Text>}
-      {hasCreated && !hasDue && !hasKept && <View style={ind.dot}/>}
+      {hasDue  && showFlame && <Text style={[ind.emoji,{opacity:maxUrgency===0?0.35:1}]}>{FLAME_MAP[maxUrgency]}</Text>}
+      {hasKept && showBear  && <Text style={[ind.emoji,{opacity:bearAvg>0?0.7+bearAvg*0.06:0.4}]}>🐻</Text>}
+      {hasKept && showHeart && <Text style={[ind.emoji,{opacity:heartAvg>0?0.7+heartAvg*0.06:0.4}]}>❤️</Text>}
+      {hasCreated && !hasDue && !hasKept && showDot && <View style={ind.dot}/>}
     </View>
   );
 }
@@ -172,7 +179,7 @@ export default function CalendarScreen() {
       const show =
         (activeFilters.includes('due')  && data.due.length > 0) ||
         (activeFilters.includes('kept') && data.kept.length > 0) ||
-        (activeFilters.includes('felt') && data.kept.some(p => p.scoreHowFelt && p.scoreHowFelt > 0)) ||
+        (activeFilters.includes('felt') && data.kept.some(p => (p.scoreHowFelt ?? 0) > 0)) ||
         (activeFilters.includes('made') && data.created.length > 0);
       if (show) filtered.set(date, data);
     });
@@ -245,7 +252,7 @@ export default function CalendarScreen() {
                   <Text style={[styles.dayNum, isToday&&styles.dayNumToday, isSelected&&styles.dayNumSelected]}>
                     {day}
                   </Text>
-                  {data && <DayIndicators data={data}/>}
+                  {data && <DayIndicators data={data} activeFilters={activeFilters}/>}
                 </TouchableOpacity>
               );
             })}
