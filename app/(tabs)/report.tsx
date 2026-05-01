@@ -350,7 +350,7 @@ const styles = StyleSheet.create({
 
   urgencyRow:        { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 7, borderBottomWidth: 1, borderBottomColor: COLOURS.glassBorder },
   urgencyRowLast:    { borderBottomWidth: 0 },
-  urgencyFlame:      { fontSize: 15, letterSpacing: -1, width: 52 },
+  urgencyFlame:      { fontSize: 15, letterSpacing: -1, width: 68, flexShrink: 0 },
   urgencyFlameFaded: { opacity: 0.28 },
   urgencyBarBg:      { flex: 1, height: 8, borderRadius: 99, backgroundColor: 'rgba(196,169,140,0.20)', overflow: 'hidden' },
   urgencyBarFill:    { height: '100%', borderRadius: 99 },
