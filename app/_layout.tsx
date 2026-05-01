@@ -3,11 +3,16 @@
  */
 import { Stack } from 'expo-router';
 import { useFonts } from 'expo-font';
+import { useEffect } from 'react';
 import { View, Text, StyleSheet, Platform } from 'react-native';
 import Svg, { Circle, Rect, Pattern, Defs } from 'react-native-svg';
+import * as SplashScreen from 'expo-splash-screen';
 import { PromisesProvider } from '../storage/PromisesContext';
 import { COLOURS } from '../theme/colours';
 import { FONTS } from '../theme/typography';
+
+// Keep the native splash visible until we're ready
+SplashScreen.preventAutoHideAsync();
 
 import {
   LibreBaskerville_400Regular,
@@ -31,7 +36,14 @@ export default function RootLayout() {
     'SourceSans3-Bold':        SourceSans3_700Bold,
   });
 
-  if (!fontsLoaded) return <SplashScreen />;
+  useEffect(() => {
+    if (fontsLoaded) {
+      // Hide native splash immediately, our custom one takes over
+      SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded]);
+
+  if (!fontsLoaded) return <CustomSplash />;
 
   const content = (
     <PromisesProvider>
@@ -73,7 +85,7 @@ const styles = StyleSheet.create({
   webInner: { flex: 1, width: '100%', maxWidth: 480, overflow: 'hidden' },
 });
 
-function SplashScreen() {
+function CustomSplash() {
   return (
     <View style={splash.root}>
       {/* Dot grid */}
