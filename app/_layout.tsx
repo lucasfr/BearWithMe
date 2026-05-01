@@ -3,7 +3,7 @@
  */
 import { Stack } from 'expo-router';
 import { useFonts } from 'expo-font';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Platform } from 'react-native';
 import Svg, { Circle, Rect, Pattern, Defs } from 'react-native-svg';
 import * as SplashScreen from 'expo-splash-screen';
@@ -36,14 +36,18 @@ export default function RootLayout() {
     'SourceSans3-Bold':        SourceSans3_700Bold,
   });
 
+  const [ready, setReady] = useState(false);
+
   useEffect(() => {
     if (fontsLoaded) {
-      // Hide native splash immediately, our custom one takes over
       SplashScreen.hideAsync();
+      // Keep splash visible for at least 2s
+      const t = setTimeout(() => setReady(true), 2000);
+      return () => clearTimeout(t);
     }
   }, [fontsLoaded]);
 
-  if (!fontsLoaded) return <CustomSplash />;
+  if (!fontsLoaded || !ready) return <CustomSplash />;
 
   const content = (
     <PromisesProvider>
