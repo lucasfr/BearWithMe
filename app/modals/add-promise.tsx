@@ -1,8 +1,9 @@
 import { useState, useRef, useCallback, useMemo } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, ScrollView,
-  StyleSheet, PanResponder, GestureResponderEvent, Modal,
+  StyleSheet, PanResponder, GestureResponderEvent,
 } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { BlurView } from 'expo-blur';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -72,31 +73,37 @@ export default function AddPromiseModal() {
   const insets  = useSafeAreaInsets();
   const { addPromise, updatePromise, promises } = usePromises();
 
-  // If editing, find the existing promise
   const existing = useMemo(
     () => (id ? promises.find(p => p.id === id) ?? null : null),
     [id, promises],
   );
   const isEditing = !!existing;
 
-  const [text, setText]                 = useState(existing?.text ?? '');
-  const [urgency, setUrgency]           = useState<UrgencyLevel>(existing?.urgency ?? 1);
-  const [toWhom, setToWhom]             = useState(
+  const [text,    setText]    = useState(existing?.text ?? '');
+  const [urgency, setUrgency] = useState<UrgencyLevel>(existing?.urgency ?? 1);
+  const [toWhom,  setToWhom]  = useState(
     existing && ['myself', 'team'].includes(existing.toWhom) ? existing.toWhom : ''
   );
-  const [customWho, setCustomWho]       = useState(
+  const [customWho,  setCustomWho]  = useState(
     existing && !['myself', 'team'].includes(existing.toWhom) ? existing.toWhom : ''
   );
-  const [fuzzy, setFuzzy]               = useState<FuzzyDeadline>(
+  const [fuzzy,    setFuzzy]    = useState<FuzzyDeadline>(
     existing?.fuzzyDeadline === 'specific' ? 'this-week' : (existing?.fuzzyDeadline ?? 'this-week')
   );
-  const [specificDate, setSpecificDate] = useState(existing?.specificDate ?? '');
-  const [showDate, setShowDate]         = useState(existing?.fuzzyDeadline === 'specific');
-  const [context, setContext]           = useState(existing?.context ?? '');
+  const [showDate, setShowDate] = useState(existing?.fuzzyDeadline === 'specific');
+  const [specificDate, setSpecificDate] = useState<Date>(
+    existing?.specificDate && /^\d{4}-\d{2}-\d{2}$/.test(existing.specificDate)
+      ? new Date(existing.specificDate + 'T12:00:00')
+      : new Date()
+  );
+  const [context, setContext] = useState(existing?.context ?? '');
+
+  const isoDate = (d: Date) => d.toISOString().split('T')[0];
 
   const handleSubmit = useCallback(async () => {
     if (!text.trim()) return;
     const who = toWhom || customWho.trim() || 'myself';
+    const deadline = showDate ? isoDate(specificDate) : undefined;
 
     if (isEditing && existing) {
       await updatePromise({
@@ -105,22 +112,21 @@ export default function AddPromiseModal() {
         urgency,
         toWhom: who,
         fuzzyDeadline: showDate ? 'specific' : fuzzy,
-        specificDate: showDate ? specificDate : undefined,
+        specificDate: deadline,
         context: context.trim() || undefined,
       });
     } else {
-      const p: BwmPromise = {
+      await addPromise({
         id: generateId(),
         text: text.trim(),
         urgency,
         toWhom: who,
         fuzzyDeadline: showDate ? 'specific' : fuzzy,
-        specificDate: showDate ? specificDate : undefined,
+        specificDate: deadline,
         context: context.trim() || undefined,
         status: 'pending',
         createdAt: new Date().toISOString(),
-      };
-      await addPromise(p);
+      });
     }
     router.back();
   }, [text, urgency, toWhom, customWho, fuzzy, specificDate, showDate, context, isEditing, existing]);
@@ -202,15 +208,22 @@ export default function AddPromiseModal() {
               );
             })}
           </View>
+
           {showDate && (
-            <TextInput
-              style={[styles.glassInput, { marginTop: -8, marginBottom: 16 }]}
-              placeholder="e.g. Fri 2 May"
-              placeholderTextColor={COLOURS.textMuted}
-              selectionColor={COLOURS.coffee2}
-              value={specificDate}
-              onChangeText={setSpecificDate}
-            />
+            <View style={styles.datePickerWrapper}>
+              <Text style={styles.datePickerLabel}>
+                {specificDate.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}
+              </Text>
+              <DateTimePicker
+                value={specificDate}
+                mode="date"
+                display="spinner"
+                onChange={(_, date) => { if (date) setSpecificDate(date); }}
+                style={styles.datePicker}
+                textColor={COLOURS.text}
+                minimumDate={new Date()}
+              />
+            </View>
           )}
 
           <Text style={styles.label}>
@@ -299,6 +312,17 @@ const styles = StyleSheet.create({
     ...chipShadow,
   },
   whenChipText: { fontFamily: FONTS.bodyBold, fontSize: SIZES.bodySmall, color: COLOURS.text },
+
+  datePickerWrapper: {
+    backgroundColor: GLASS_BG, borderRadius: 16,
+    marginBottom: 18, overflow: 'hidden',
+    ...inputShadow,
+  },
+  datePickerLabel: {
+    fontFamily: FONTS.bodyBold, fontSize: SIZES.bodySmall,
+    color: COLOURS.coffee1, textAlign: 'center', paddingTop: 12,
+  },
+  datePicker: { width: '100%' },
 
   actions: { flexDirection: 'row', gap: 10, marginTop: 6, marginBottom: 4 },
   cancelBtn: {
