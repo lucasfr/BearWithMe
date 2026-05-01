@@ -83,6 +83,8 @@ PODS:
   - ExpoRouter (55.0.13):
     - ExpoModulesCore
     - RNScreens
+  - ExpoSplashScreen (55.0.19):
+    - ExpoModulesCore
   - ExpoSymbols (55.0.7):
     - ExpoModulesCore
   - FBLazyVector (0.83.2)
@@ -2095,6 +2097,7 @@ DEPENDENCIES:
   - ExpoModulesCore (from `../node_modules/expo-modules-core`)
   - ExpoModulesJSI (from `../node_modules/expo-modules-core`)
   - ExpoRouter (from `../node_modules/expo-router/ios`)
+  - ExpoSplashScreen (from `../node_modules/expo-splash-screen/ios`)
   - ExpoSymbols (from `../node_modules/expo-symbols/ios`)
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
@@ -2216,6 +2219,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-modules-core"
   ExpoRouter:
     :path: "../node_modules/expo-router/ios"
+  ExpoSplashScreen:
+    :path: "../node_modules/expo-splash-screen/ios"
   ExpoSymbols:
     :path: "../node_modules/expo-symbols/ios"
   FBLazyVector:
@@ -2390,6 +2395,7 @@ SPEC CHECKSUMS:
   ExpoModulesCore: 1a328eb3e445ae57848d5fc87c6894ac4a0959f8
   ExpoModulesJSI: 24121c9a2f32d5f6b6ca2f7ff54925be716d5841
   ExpoRouter: e2c56f80102b153c5f8c887b38094ef936c266a2
+  ExpoSplashScreen: 43517d54a0f90d381c80deda859aa6087e80884b
   ExpoSymbols: 8b63e859ba013df1f2fc666f535fddb3d5270569
   FBLazyVector: 32e9ed0301d0fcbc1b2b341dd7fcbf291f51eb83
   hermes-engine: 06becbbb5a7c44c786a58bfd3a903420db1b1191

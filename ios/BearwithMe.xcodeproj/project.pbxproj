@@ -7,29 +7,29 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0D110028D58E1BA0234DBA4E /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F2523237F24341AB391B10C /* ExpoModulesProvider.swift */; };
-		0DD26D5ABA2DC652010C73EC /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 3E53190065EF0537C86F23F3 /* PrivacyInfo.xcprivacy */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
-		424E4EC572CD603F2A6309EB /* libPods-BearwithMe.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F5BAE89F98E4ED108AE91225 /* libPods-BearwithMe.a */; };
+		828B5E66797EA3B9C0D3F419 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 401642CE1B2187AF88F576F3 /* PrivacyInfo.xcprivacy */; };
+		87DA4CAC5803FBDD64D97420 /* libPods-BearwithMe.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5C4E77CD376FEB872BB1C17B /* libPods-BearwithMe.a */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
+		FA7D25DBA62B031499C4A0CE /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB49F7692A1CB5282416D382 /* ExpoModulesProvider.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		13B07F961A680F5B00A75B9A /* BearwithMe.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BearwithMe.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = BearwithMe/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = BearwithMe/Info.plist; sourceTree = "<group>"; };
-		3E53190065EF0537C86F23F3 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = BearwithMe/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		3F2523237F24341AB391B10C /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-BearwithMe/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
-		A62DF3D341281720348FC713 /* Pods-BearwithMe.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BearwithMe.debug.xcconfig"; path = "Target Support Files/Pods-BearwithMe/Pods-BearwithMe.debug.xcconfig"; sourceTree = "<group>"; };
+		401642CE1B2187AF88F576F3 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = BearwithMe/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		5C4E77CD376FEB872BB1C17B /* libPods-BearwithMe.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-BearwithMe.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		5DBD886C29A1248DFA12A26A /* Pods-BearwithMe.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BearwithMe.release.xcconfig"; path = "Target Support Files/Pods-BearwithMe/Pods-BearwithMe.release.xcconfig"; sourceTree = "<group>"; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = BearwithMe/SplashScreen.storyboard; sourceTree = "<group>"; };
+		B686089ED12C3225FAF97593 /* Pods-BearwithMe.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BearwithMe.debug.xcconfig"; path = "Target Support Files/Pods-BearwithMe/Pods-BearwithMe.debug.xcconfig"; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
-		E33D5C3177429A3539D89904 /* Pods-BearwithMe.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BearwithMe.release.xcconfig"; path = "Target Support Files/Pods-BearwithMe/Pods-BearwithMe.release.xcconfig"; sourceTree = "<group>"; };
+		EB49F7692A1CB5282416D382 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-BearwithMe/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = BearwithMe/AppDelegate.swift; sourceTree = "<group>"; };
 		F11748442D0722820044C1D9 /* BearwithMe-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "BearwithMe-Bridging-Header.h"; path = "BearwithMe/BearwithMe-Bridging-Header.h"; sourceTree = "<group>"; };
-		F5BAE89F98E4ED108AE91225 /* libPods-BearwithMe.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-BearwithMe.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -37,7 +37,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				424E4EC572CD603F2A6309EB /* libPods-BearwithMe.a in Frameworks */,
+				87DA4CAC5803FBDD64D97420 /* libPods-BearwithMe.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -53,7 +53,7 @@
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */,
-				3E53190065EF0537C86F23F3 /* PrivacyInfo.xcprivacy */,
+				401642CE1B2187AF88F576F3 /* PrivacyInfo.xcprivacy */,
 			);
 			name = BearwithMe;
 			sourceTree = "<group>";
@@ -62,17 +62,9 @@
 			isa = PBXGroup;
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
-				F5BAE89F98E4ED108AE91225 /* libPods-BearwithMe.a */,
+				5C4E77CD376FEB872BB1C17B /* libPods-BearwithMe.a */,
 			);
 			name = Frameworks;
-			sourceTree = "<group>";
-		};
-		42228BEB6BBE5ED7BFDF06D0 /* BearwithMe */ = {
-			isa = PBXGroup;
-			children = (
-				3F2523237F24341AB391B10C /* ExpoModulesProvider.swift */,
-			);
-			name = BearwithMe;
 			sourceTree = "<group>";
 		};
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
@@ -89,8 +81,8 @@
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
-				D16E0F94705AF65790D07F7E /* Pods */,
-				FEB3F3D0CC7263FE4CDF82FC /* ExpoModulesProviders */,
+				8BAC456E5642414970E578A7 /* Pods */,
+				FC84CE81A3842288F0E605FB /* ExpoModulesProviders */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -105,6 +97,24 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		8BAC456E5642414970E578A7 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				B686089ED12C3225FAF97593 /* Pods-BearwithMe.debug.xcconfig */,
+				5DBD886C29A1248DFA12A26A /* Pods-BearwithMe.release.xcconfig */,
+			);
+			name = Pods;
+			path = Pods;
+			sourceTree = "<group>";
+		};
+		906569B5A2F4DBB76C2D19B0 /* BearwithMe */ = {
+			isa = PBXGroup;
+			children = (
+				EB49F7692A1CB5282416D382 /* ExpoModulesProvider.swift */,
+			);
+			name = BearwithMe;
+			sourceTree = "<group>";
+		};
 		BB2F792B24A3F905000567C9 /* Supporting */ = {
 			isa = PBXGroup;
 			children = (
@@ -114,20 +124,10 @@
 			path = BearwithMe/Supporting;
 			sourceTree = "<group>";
 		};
-		D16E0F94705AF65790D07F7E /* Pods */ = {
+		FC84CE81A3842288F0E605FB /* ExpoModulesProviders */ = {
 			isa = PBXGroup;
 			children = (
-				A62DF3D341281720348FC713 /* Pods-BearwithMe.debug.xcconfig */,
-				E33D5C3177429A3539D89904 /* Pods-BearwithMe.release.xcconfig */,
-			);
-			name = Pods;
-			path = Pods;
-			sourceTree = "<group>";
-		};
-		FEB3F3D0CC7263FE4CDF82FC /* ExpoModulesProviders */ = {
-			isa = PBXGroup;
-			children = (
-				42228BEB6BBE5ED7BFDF06D0 /* BearwithMe */,
+				906569B5A2F4DBB76C2D19B0 /* BearwithMe */,
 			);
 			name = ExpoModulesProviders;
 			sourceTree = "<group>";
@@ -140,13 +140,13 @@
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "BearwithMe" */;
 			buildPhases = (
 				08A4A3CD28434E44B6B9DE2E /* [CP] Check Pods Manifest.lock */,
-				B1A07C9106671058F23D46F2 /* [Expo] Configure project */,
+				B2499649501AAD2F8158E33C /* [Expo] Configure project */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */,
-				96C3F9B455B9CFE64AA8E08C /* [CP] Embed Pods Frameworks */,
+				15B223C892190A5A5CCCFAA2 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -196,7 +196,7 @@
 				BB2F792D24A3F905000567C9 /* Expo.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
-				0DD26D5ABA2DC652010C73EC /* PrivacyInfo.xcprivacy in Resources */,
+				828B5E66797EA3B9C0D3F419 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -242,6 +242,28 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
+		15B223C892190A5A5CCCFAA2 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-BearwithMe/Pods-BearwithMe-frameworks.sh",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/React-Core-prebuilt/React.framework/React",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ReactNativeDependencies/ReactNativeDependencies.framework/ReactNativeDependencies",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/hermes-engine/Pre-built/hermesvm.framework/hermesvm",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/React.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ReactNativeDependencies.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermesvm.framework",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-BearwithMe/Pods-BearwithMe-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
 		800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -274,29 +296,7 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-BearwithMe/Pods-BearwithMe-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		96C3F9B455B9CFE64AA8E08C /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-BearwithMe/Pods-BearwithMe-frameworks.sh",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/React-Core-prebuilt/React.framework/React",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ReactNativeDependencies/ReactNativeDependencies.framework/ReactNativeDependencies",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/hermes-engine/Pre-built/hermesvm.framework/hermesvm",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputPaths = (
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/React.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ReactNativeDependencies.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermesvm.framework",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-BearwithMe/Pods-BearwithMe-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		B1A07C9106671058F23D46F2 /* [Expo] Configure project */ = {
+		B2499649501AAD2F8158E33C /* [Expo] Configure project */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
@@ -328,7 +328,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */,
-				0D110028D58E1BA0234DBA4E /* ExpoModulesProvider.swift in Sources */,
+				FA7D25DBA62B031499C4A0CE /* ExpoModulesProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -337,7 +337,7 @@
 /* Begin XCBuildConfiguration section */
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = A62DF3D341281720348FC713 /* Pods-BearwithMe.debug.xcconfig */;
+			baseConfigurationReference = B686089ED12C3225FAF97593 /* Pods-BearwithMe.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
@@ -373,7 +373,7 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = E33D5C3177429A3539D89904 /* Pods-BearwithMe.release.xcconfig */;
+			baseConfigurationReference = 5DBD886C29A1248DFA12A26A /* Pods-BearwithMe.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
