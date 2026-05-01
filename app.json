@@ -29,7 +29,14 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/icons/favicon.ico"
+      "favicon": "./assets/icons/favicon.ico",
+      "name": "Bear with Me",
+      "shortName": "Bear with Me",
+      "description": "A quiet promise tracker for people who care deeply and sometimes struggle to follow through.",
+      "themeColor": "#6F4E37",
+      "backgroundColor": "#F5EFE6",
+      "display": "standalone",
+      "orientation": "portrait"
     }
   }
 }

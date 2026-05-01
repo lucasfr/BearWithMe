@@ -14,6 +14,13 @@ import { FONTS } from '../theme/typography';
 // Keep the native splash visible until we're ready
 SplashScreen.preventAutoHideAsync();
 
+// Register service worker for PWA
+if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/service-worker.js').catch(() => {});
+  });
+}
+
 import {
   LibreBaskerville_400Regular,
   LibreBaskerville_400Regular_Italic,
