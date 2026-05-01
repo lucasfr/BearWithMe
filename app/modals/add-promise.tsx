@@ -90,7 +90,8 @@ export default function AddPromiseModal() {
   const [fuzzy,    setFuzzy]    = useState<FuzzyDeadline>(
     existing?.fuzzyDeadline === 'specific' ? 'this-week' : (existing?.fuzzyDeadline ?? 'this-week')
   );
-  const [showDate, setShowDate] = useState(existing?.fuzzyDeadline === 'specific');
+  const [showDate,    setShowDate]    = useState(existing?.fuzzyDeadline === 'specific');
+  const [showPicker,  setShowPicker]  = useState(false);
   const [specificDate, setSpecificDate] = useState<Date>(
     existing?.specificDate && /^\d{4}-\d{2}-\d{2}$/.test(existing.specificDate)
       ? new Date(existing.specificDate + 'T12:00:00')
@@ -98,9 +99,9 @@ export default function AddPromiseModal() {
   );
   const [context, setContext] = useState(existing?.context ?? '');
 
-  const isoDate = (d: Date) => d.toISOString().split('T')[0];
-  const dateLabel = specificDate.toLocaleDateString('en-GB', {
-    weekday: 'short', day: 'numeric', month: 'short',
+  const isoDate    = (d: Date) => d.toISOString().split('T')[0];
+  const dateLabel  = specificDate.toLocaleDateString('en-GB', {
+    weekday: 'short', day: 'numeric', month: 'short', year: 'numeric',
   });
 
   const handleSubmit = useCallback(async () => {
@@ -189,13 +190,22 @@ export default function AddPromiseModal() {
 
           <Text style={styles.label}>When</Text>
           <View style={styles.whenRow}>
-            {WHEN_OPTIONS.filter(o => o.key !== 'specific').map(({ key, label }) => {
-              const isActive = !showDate && fuzzy === key;
+            {WHEN_OPTIONS.map(({ key, label }) => {
+              const isActive = key === 'specific' ? showDate : (!showDate && fuzzy === key);
               return (
                 <TouchableOpacity
                   key={key}
                   style={[styles.whenChip, isActive && styles.chipActive]}
-                  onPress={() => { setFuzzy(key); setShowDate(false); }}
+                  onPress={() => {
+                    if (key === 'specific') {
+                      setShowDate(true);
+                      setShowPicker(true);
+                    } else {
+                      setFuzzy(key);
+                      setShowDate(false);
+                      setShowPicker(false);
+                    }
+                  }}
                 >
                   <Text style={[styles.whenChipText, isActive && styles.chipTextActive]}>
                     {label}
@@ -203,25 +213,30 @@ export default function AddPromiseModal() {
                 </TouchableOpacity>
               );
             })}
-            {/* Specific date — native compact picker as the chip */}
-            <View style={[styles.whenChip, showDate && styles.chipActive, styles.dateChipWrapper]}>
-              {!showDate && (
-                <TouchableOpacity onPress={() => setShowDate(true)}>
-                  <Text style={styles.whenChipText}>specific</Text>
-                </TouchableOpacity>
-              )}
-              {showDate && (
-                <DateTimePicker
-                  value={specificDate}
-                  mode="date"
-                  display="compact"
-                  onChange={(_, date) => { if (date) setSpecificDate(date); }}
-                  accentColor={COLOURS.coffee1}
-                  textColor={COLOURS.coffee1}
-                />
-              )}
-            </View>
           </View>
+
+          {/* When specific is selected: show date label + inline picker */}
+          {showDate && (
+            <TouchableOpacity
+              style={styles.dateLabelRow}
+              onPress={() => setShowPicker(p => !p)}
+              activeOpacity={0.75}
+            >
+              <Text style={styles.dateLabelText}>📅 {dateLabel}</Text>
+              <Text style={styles.dateLabelEdit}>{showPicker ? 'done ✓' : 'change'}</Text>
+            </TouchableOpacity>
+          )}
+
+          {showDate && showPicker && (
+            <DateTimePicker
+              value={specificDate}
+              mode="date"
+              display="spinner"
+              onChange={(_, date) => { if (date) setSpecificDate(date); }}
+              textColor={COLOURS.text}
+              accentColor={COLOURS.coffee1}
+            />
+          )}
 
           <Text style={styles.label}>
             Context{'  '}<Text style={styles.labelOptional}>optional</Text>
@@ -302,14 +317,23 @@ const styles = StyleSheet.create({
     ...chipShadow,
   },
 
-  whenRow: { flexDirection: 'row', gap: 6, marginBottom: 12, flexWrap: 'wrap' },
+  whenRow: { flexDirection: 'row', gap: 6, marginBottom: 12 },
   whenChip: {
     flex: 1, paddingVertical: 11, alignItems: 'center',
     backgroundColor: CHIP_BG, borderRadius: RADIUS.pill,
     ...chipShadow,
   },
   whenChipText: { fontFamily: FONTS.bodyBold, fontSize: SIZES.bodySmall, color: COLOURS.text },
-  dateChipWrapper: { overflow: 'hidden', minWidth: 80 },
+
+  // Date label row — shown after picking "specific"
+  dateLabelRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    backgroundColor: CHIP_ACTIVE_BG, borderRadius: 14,
+    paddingVertical: 12, paddingHorizontal: 16, marginBottom: 8,
+    ...chipShadow,
+  },
+  dateLabelText: { fontFamily: FONTS.bodyBold, fontSize: SIZES.bodySmall, color: COLOURS.coffee1 },
+  dateLabelEdit: { fontFamily: FONTS.body, fontSize: SIZES.label, color: COLOURS.coffee2 },
 
   actions: { flexDirection: 'row', gap: 10, marginTop: 6, marginBottom: 4 },
   cancelBtn: {
