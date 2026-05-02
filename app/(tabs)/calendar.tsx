@@ -4,13 +4,24 @@ import {
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
-import Svg, { Circle, Rect, Defs, Pattern } from 'react-native-svg';
+import Svg, { Circle, Rect, Defs, Pattern, Path } from 'react-native-svg';
 import { usePromises } from '../../storage/PromisesContext';
 import { useRouter } from 'expo-router';
 import { Promise as BwmPromise } from '../../types/promise';
 import { COLOURS } from '../../theme/colours';
 import { FONTS, SIZES, RADIUS } from '../../theme/typography';
 import { MODAL_HANDLE } from '../../theme/modal';
+
+const SearchIcon = ({ color }: { color: string }) => (
+  <Svg width={19} height={19} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    <Circle cx="11" cy="11" r="8" /><Path d="m21 21-4.35-4.35" />
+  </Svg>
+);
+const XIcon = ({ color }: { color: string }) => (
+  <Svg width={19} height={19} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.5} strokeLinecap="round">
+    <Path d="M18 6 6 18M6 6l12 12" />
+  </Svg>
+);
 
 const DAYS   = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -230,10 +241,10 @@ export default function CalendarScreen() {
                 autoFocus
               />
               <TouchableOpacity
-                style={styles.searchClose}
+                style={styles.iconBtn}
                 onPress={() => { setSearchActive(false); setSearchQuery(''); }}
               >
-                <Text style={styles.searchCloseText}>✕</Text>
+                <XIcon color={COLOURS.coffee1} />
               </TouchableOpacity>
             </View>
           ) : (
@@ -249,8 +260,8 @@ export default function CalendarScreen() {
                   }).length} promises this month
                 </Text>
               </View>
-              <TouchableOpacity style={styles.searchBtn} onPress={() => setSearchActive(true)}>
-                <Text style={styles.searchBtnText}>🔍</Text>
+              <TouchableOpacity style={styles.iconBtn} onPress={() => setSearchActive(true)}>
+                <SearchIcon color={COLOURS.coffee1} />
               </TouchableOpacity>
             </>
           )}
@@ -341,12 +352,9 @@ const styles = StyleSheet.create({
   },
   headerTitle: { fontFamily: FONTS.headingItalic, fontSize: SIZES.screenTitle, color: COLOURS.text },
   headerSub:   { fontFamily: FONTS.body, fontSize: SIZES.label, color: COLOURS.textDim, marginTop: 2 },
-  searchBtn:      { width: 38, height: 38, borderRadius: 12, backgroundColor: COLOURS.glass, borderWidth: 1, borderColor: COLOURS.glassBorder, alignItems: 'center', justifyContent: 'center' },
-  searchBtnText:  { fontSize: 16 },
+  iconBtn:       { width: 38, height: 38, borderRadius: 12, backgroundColor: COLOURS.glass, borderWidth: 1, borderColor: COLOURS.glassBorder, alignItems: 'center', justifyContent: 'center' },
   searchRow:      { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 },
   searchInput:    { flex: 1, paddingVertical: 9, paddingHorizontal: 14, backgroundColor: COLOURS.glass, borderWidth: 1, borderColor: COLOURS.glassBorder, borderRadius: 12, fontFamily: FONTS.body, fontSize: SIZES.bodySmall, color: COLOURS.text },
-  searchClose:    { width: 38, height: 38, borderRadius: 12, backgroundColor: COLOURS.glass, borderWidth: 1, borderColor: COLOURS.glassBorder, alignItems: 'center', justifyContent: 'center' },
-  searchCloseText:{ fontFamily: FONTS.bodyBold, fontSize: 14, color: COLOURS.coffee1 },
   main:        { flex: 1, paddingHorizontal: 12, paddingTop: 16 },
   mainContent: { paddingBottom: 100 },
   nav:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 },
