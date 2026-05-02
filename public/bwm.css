@@ -1,0 +1,38 @@
+/* Bear with Me — web overrides */
+
+/* Typing cursor colour */
+* {
+  caret-color: #6F4E37 !important;
+}
+
+/* Remove blue focus ring everywhere */
+*:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Date input — remove blue tinge */
+input[type="date"] {
+  accent-color: #6F4E37 !important;
+  color-scheme: light !important;
+}
+
+/* Calendar picker icon — warm tint */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: sepia(1) saturate(4) hue-rotate(330deg) brightness(0.55) !important;
+  cursor: pointer;
+}
+
+/* Date input popup calendar selected day */
+input[type="date"]::-webkit-datetime-edit-day-field:focus,
+input[type="date"]::-webkit-datetime-edit-month-field:focus,
+input[type="date"]::-webkit-datetime-edit-year-field:focus {
+  background-color: rgba(111,78,55,0.20) !important;
+  color: #6F4E37 !important;
+}
+
+/* Inputs — no overflow */
+input, textarea {
+  box-sizing: border-box !important;
+  max-width: 100% !important;
+}

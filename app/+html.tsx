@@ -14,6 +14,8 @@ export default function Root({ children }: { children: React.ReactNode }) {
 
         {/* PWA manifest */}
         <link rel="manifest" href="/manifest.json" />
+        {/* App-wide web overrides */}
+        <link rel="stylesheet" href="/bwm.css" />
 
         {/* iOS PWA — name and icon */}
         <meta name="apple-mobile-web-app-capable" content="yes" />
