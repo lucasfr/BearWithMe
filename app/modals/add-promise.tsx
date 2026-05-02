@@ -144,9 +144,12 @@ export default function AddPromiseModal() {
 
       <BlurView intensity={60} tint="light" style={[MODAL_SHEET, { paddingBottom: insets.bottom + 20 }]}>
         <View style={MODAL_HANDLE} />
-        <Text style={styles.title}>
-          {isEditing ? 'Edit promise' : 'I promise to…'}
-        </Text>
+        <View style={styles.titleRow}>
+          <Text style={styles.title}>
+            {isEditing ? 'Edit promise' : 'I promise to…'}
+          </Text>
+          <FlameBar value={urgency} onChange={setUrgency} />
+        </View>
 
         <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
 
@@ -161,9 +164,6 @@ export default function AddPromiseModal() {
             multiline
             autoFocus={!isEditing}
           />
-
-          <Text style={styles.label}>Urgency</Text>
-          <FlameBar value={urgency} onChange={setUrgency} />
 
           <Text style={styles.label}>To whom</Text>
           <View style={styles.chipRow}>
