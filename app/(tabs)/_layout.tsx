@@ -54,9 +54,7 @@ export default function TabLayout() {
 
   const screenOptions = useMemo(() => {
     // On web PWA, insets.bottom is 0 — use env() for the home indicator
-    const bottomPad = Platform.OS === 'web'
-      ? 16
-      : insets.bottom;
+    const bottomPad = Platform.OS === 'web' ? 20 : insets.bottom;
     return {
       headerShown: false,
       tabBarStyle: {
@@ -64,9 +62,9 @@ export default function TabLayout() {
         backgroundColor: 'rgba(245,239,230,0.92)',
         borderTopWidth: 1,
         borderTopColor: COLOURS.glassBorder,
-        height: 60 + bottomPad,
+        height: 72 + bottomPad,
         paddingBottom: bottomPad,
-        paddingTop: 8,
+        paddingTop: 10,
       },
       tabBarActiveTintColor:   COLOURS.coffee1,
       tabBarInactiveTintColor: COLOURS.textDim,
