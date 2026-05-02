@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [0.1.0] — 2026-05-02
 
-Initial release. Everything below was built and shipped in a single session. 🐻
+Initial release. 🐻
 
 ### Added
 
@@ -64,4 +64,4 @@ Initial release. Everything below was built and shipped in a single session. �
 
 ---
 
-*Bear with Me is open source under the MIT Licence. Built in one night by someone who kept forgetting promises — not out of carelessness, but because the executive function just wasn't there.*
+*Bear with Me is open source under the MIT Licence. Built by someone who kept forgetting promises — not out of carelessness, but because the executive function just wasn't there.*
