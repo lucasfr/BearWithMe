@@ -2,11 +2,11 @@ import { useMemo, useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity, Modal, Platform,
 } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
 import Svg, { Circle, Rect, Defs, Pattern } from 'react-native-svg';
 import { usePromises } from '../../storage/PromisesContext';
+import { useRouter } from 'expo-router';
 import { Promise as BwmPromise } from '../../types/promise';
 import { COLOURS } from '../../theme/colours';
 import { FONTS, SIZES, RADIUS } from '../../theme/typography';
@@ -75,9 +75,9 @@ function DayIndicators({ data, activeFilters }: { data: DayData; activeFilters: 
   );
 }
 
-function DaySheet({ date, data, onClose, onPickDate }: {
+function DaySheet({ date, data, onClose, onEdit }: {
   date: string; data: DayData | undefined;
-  onClose: () => void; onPickDate: (p: BwmPromise) => void;
+  onClose: () => void; onEdit: (p: BwmPromise) => void;
 }) {
   const insets = useSafeAreaInsets();
   const label = new Date(date + 'T12:00:00').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
@@ -114,16 +114,14 @@ function DaySheet({ date, data, onClose, onPickDate }: {
                       <Text style={ds.itemText} numberOfLines={2}>{p.text}</Text>
                       <View style={ds.itemMeta}>
                         {isDue  && <Text style={ds.tag}>📅 {p.specificDate && hasFuzzyDate ? p.specificDate : 'due'}</Text>}
-                        {isDue  && hasFuzzyDate && (
-                          <TouchableOpacity onPress={() => onPickDate(p)}>
-                            <Text style={[ds.tag, ds.setDateTag]}>📆 set date</Text>
-                          </TouchableOpacity>
-                        )}
                         {isKept && <Text style={ds.tag}>✅ kept</Text>}
                         {isMade && <Text style={ds.tag}>📝 made</Text>}
                         {isKept && !!p.scoreHowWell && <Text style={ds.tag}>🐻 {p.scoreHowWell}/5</Text>}
                         {isKept && !!p.scoreHowFelt && <Text style={ds.tag}>❤️ {p.scoreHowFelt}/5</Text>}
                         <Text style={[ds.tag,ds.flames]}>{FLAME_MAP[p.urgency]}</Text>
+                        <TouchableOpacity onPress={() => { onClose(); onEdit(p); }}>
+                          <Text style={[ds.tag, ds.editTag]}>✏️ edit</Text>
+                        </TouchableOpacity>
                       </View>
                     </View>
                   </View>
@@ -139,14 +137,13 @@ function DaySheet({ date, data, onClose, onPickDate }: {
 
 export default function CalendarScreen() {
   const { promises, updatePromise } = usePromises();
+  const router = useRouter();
   const today    = new Date();
   const todayStr = isoDate(today);
 
   const [year,  setYear]  = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth());
-  const [selectedDate,   setSelectedDate]   = useState<string | null>(null);
-  const [pickingPromise, setPickingPromise] = useState<BwmPromise | null>(null);
-  const [pickerDate,     setPickerDate]     = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
 
@@ -187,12 +184,6 @@ export default function CalendarScreen() {
   }, [calData, activeFilters]);
 
   const selectedData = selectedDate ? calData.get(selectedDate) : undefined;
-
-  const handleConfirmDate = useCallback(async () => {
-    if (!pickingPromise) return;
-    await updatePromise({ ...pickingPromise, specificDate: isoDate(pickerDate), fuzzyDeadline: 'specific' });
-    setPickingPromise(null);
-  }, [pickingPromise, pickerDate, updatePromise]);
 
   return (
     <View style={styles.root}>
@@ -287,36 +278,8 @@ export default function CalendarScreen() {
           date={selectedDate}
           data={selectedData}
           onClose={() => setSelectedDate(null)}
-          onPickDate={p => { setPickingPromise(p); setPickerDate(new Date()); }}
+          onEdit={p => router.push(`/modals/add-promise?id=${p.id}`)}
         />
-      )}
-
-      {/* Date picker modal — BlurView card matching other modals */}
-      {pickingPromise && (
-        <Modal transparent animationType="fade" onRequestClose={() => setPickingPromise(null)}>
-          <View style={pk.backdrop}>
-            <BlurView intensity={60} tint="light" style={pk.card}>
-              <Text style={pk.title}>Set a date</Text>
-              <Text style={pk.sub} numberOfLines={2}>{pickingPromise.text}</Text>
-              <DateTimePicker
-                value={pickerDate}
-                mode="date"
-                display="spinner"
-                onChange={(_, date) => { if (date) setPickerDate(date); }}
-                style={pk.datepicker}
-                textColor={COLOURS.text}
-              />
-              <View style={pk.btnRow}>
-                <TouchableOpacity style={pk.cancelBtn} onPress={() => setPickingPromise(null)}>
-                  <Text style={pk.cancelText}>Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={pk.confirmBtn} onPress={handleConfirmDate}>
-                  <Text style={pk.confirmText}>Set date</Text>
-                </TouchableOpacity>
-              </View>
-            </BlurView>
-          </View>
-        </Modal>
       )}
     </View>
   );
@@ -386,28 +349,5 @@ const ds = StyleSheet.create({
   itemMeta: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   tag:      { fontFamily: FONTS.bodyBold, fontSize: 10, color: COLOURS.textMuted, backgroundColor: COLOURS.glass, borderWidth: 1, borderColor: COLOURS.glassBorder, borderRadius: 20, paddingVertical: 2, paddingHorizontal: 7 },
   flames:     { color: COLOURS.coffee2 },
-  setDateTag: { color: COLOURS.coffee1, borderColor: COLOURS.coffee2 },
-});
-
-const pk = StyleSheet.create({
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(44,26,14,0.45)',
-    alignItems: 'center', justifyContent: 'center', padding: 32,
-  },
-  card: {
-    width: '100%', borderRadius: 28, overflow: 'hidden',
-    borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.80)',
-    shadowColor: '#6F4E37', shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.12, shadowRadius: 18, elevation: 8,
-    padding: 24, alignItems: 'center',
-  },
-  title:       { fontFamily: FONTS.headingItalic, fontSize: SIZES.screenTitle, color: COLOURS.text, marginBottom: 6 },
-  sub:         { fontFamily: FONTS.bodyItalic, fontSize: SIZES.bodySmall, color: COLOURS.textMuted, textAlign: 'center', marginBottom: 8 },
-  datepicker:  { width: '100%', marginBottom: 16 },
-  btnRow:      { flexDirection: 'row', gap: 12, width: '100%' },
-  cancelBtn:   { flex: 1, paddingVertical: 15, alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.60)', borderRadius: 20, shadowColor: '#6F4E37', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.14, shadowRadius: 10, elevation: 4 },
-  cancelText:  { fontFamily: FONTS.bodyBold, fontSize: SIZES.bodySmall, color: COLOURS.textMuted },
-  confirmBtn:  { flex: 1, paddingVertical: 15, alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.60)', borderRadius: 20, shadowColor: '#6F4E37', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.22, shadowRadius: 18, elevation: 8 },
-  confirmText: { fontFamily: FONTS.bodyBold, fontSize: SIZES.bodySmall, color: COLOURS.coffee1 },
+  editTag:    { color: COLOURS.coffee1, borderColor: COLOURS.coffee2 },
 });
