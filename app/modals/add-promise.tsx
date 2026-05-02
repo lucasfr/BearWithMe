@@ -319,11 +319,13 @@ const styles = StyleSheet.create({
     backgroundColor: GLASS_BG, borderRadius: 16,
     padding: 14, fontFamily: FONTS.body, fontSize: SIZES.body,
     color: COLOURS.text, marginBottom: 18,
+    overflow: 'hidden',
+    ...(Platform.OS === 'web' ? { minHeight: 44, maxHeight: 120 } : {}),
     ...inputShadow,
   },
   flameRow:   { flexDirection: 'row', justifyContent: 'center', gap: 4, marginBottom: 18 },
-  flamePip:   { padding: 8 },
-  flameEmoji: { fontSize: SIZES.emoji, lineHeight: SIZES.emoji + 8 },
+  flamePip:   { padding: Platform.OS === 'web' ? 4 : 8 },
+  flameEmoji: { fontSize: Platform.OS === 'web' ? 24 : SIZES.emoji, lineHeight: Platform.OS === 'web' ? 32 : SIZES.emoji + 8 },
   flameFaded: { opacity: 0.22 },
 
   chipRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 18 },
@@ -340,6 +342,7 @@ const styles = StyleSheet.create({
     flex: 1, paddingVertical: 10, paddingHorizontal: 16,
     backgroundColor: CHIP_BG, borderRadius: RADIUS.pill,
     fontFamily: FONTS.body, fontSize: SIZES.bodySmall, color: COLOURS.text,
+    overflow: 'hidden',
     ...chipShadow,
   },
 
