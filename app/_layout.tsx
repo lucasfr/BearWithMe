@@ -7,9 +7,13 @@ import { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Platform } from 'react-native';
 import Svg, { Circle, Rect, Pattern, Defs } from 'react-native-svg';
 import * as SplashScreen from 'expo-splash-screen';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { PromisesProvider } from '../storage/PromisesContext';
+import Onboarding from './onboarding';
 import { COLOURS } from '../theme/colours';
 import { FONTS } from '../theme/typography';
+
+const ONBOARDING_KEY = '@bwm:onboardingDone';
 
 // Keep the native splash visible until we're ready
 SplashScreen.preventAutoHideAsync();
@@ -44,6 +48,18 @@ export default function RootLayout() {
   });
 
   const [ready, setReady] = useState(false);
+  const [onboardingDone, setOnboardingDone] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    AsyncStorage.getItem(ONBOARDING_KEY).then(v => {
+      setOnboardingDone(v === 'true');
+    });
+  }, []);
+
+  const finishOnboarding = async () => {
+    await AsyncStorage.setItem(ONBOARDING_KEY, 'true');
+    setOnboardingDone(true);
+  };
 
   useEffect(() => {
     if (fontsLoaded) {
@@ -54,7 +70,9 @@ export default function RootLayout() {
     }
   }, [fontsLoaded]);
 
-  if (!fontsLoaded || !ready) return <CustomSplash />;
+  if (!fontsLoaded || !ready || onboardingDone === null) return <CustomSplash />;
+
+  if (!onboardingDone) return <Onboarding onDone={finishOnboarding} />;
 
   const content = (
     <PromisesProvider>
