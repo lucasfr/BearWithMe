@@ -40,7 +40,7 @@ export default function Root({ children }: { children: React.ReactNode }) {
             height: 100vh;
             height: 100dvh;
           }
-          /* Remove blue browser focus ring — use app's own focus styles */
+          /* Remove blue browser focus ring — use warm coffee glow */
           input:focus, textarea:focus, [contenteditable]:focus {
             outline: none !important;
             box-shadow: 0 0 0 2px rgba(111,78,55,0.35) !important;
@@ -48,8 +48,19 @@ export default function Root({ children }: { children: React.ReactNode }) {
           }
           /* Prevent inputs from overflowing their containers */
           input, textarea {
-            box-sizing: border-box;
-            max-width: 100%;
+            box-sizing: border-box !important;
+            max-width: 100% !important;
+            overflow: hidden !important;
+            border-radius: inherit;
+          }
+          /* Date picker — override blue accent with coffee */
+          input[type="date"] {
+            accent-color: #6F4E37 !important;
+            color-scheme: light;
+          }
+          input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: sepia(1) saturate(3) hue-rotate(330deg) brightness(0.6);
+            cursor: pointer;
           }
         `}</style>
       </head>
