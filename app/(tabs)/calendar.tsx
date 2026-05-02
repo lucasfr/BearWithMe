@@ -1,6 +1,6 @@
 import { useMemo, useState, useCallback } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet, TouchableOpacity, Modal, Platform,
+  View, Text, TextInput, ScrollView, StyleSheet, TouchableOpacity, Modal, Platform,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
@@ -146,6 +146,8 @@ export default function CalendarScreen() {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
+  const [searchActive, setSearchActive] = useState(false);
+  const [searchQuery,  setSearchQuery]  = useState('');
 
   const toggleFilter = useCallback((f: string) => {
     setActiveFilters(prev => prev.includes(f) ? prev.filter(x => x !== f) : [...prev, f]);
@@ -170,9 +172,25 @@ export default function CalendarScreen() {
   }, [year, month]);
 
   const filteredCalData = useMemo(() => {
-    if (activeFilters.length === 0) return calData;
+    const q = searchQuery.trim().toLowerCase();
+    let base = calData;
+
+    // Search filter — show only days with matching promises
+    if (q) {
+      const searched = new Map<string, DayData>();
+      calData.forEach((data, date) => {
+        const all = [...data.due, ...data.kept, ...data.created];
+        const unique = [...new Map(all.map(p => [p.id, p])).values()];
+        if (unique.some(p => p.text.toLowerCase().includes(q) || (p.context ?? '').toLowerCase().includes(q))) {
+          searched.set(date, data);
+        }
+      });
+      base = searched;
+    }
+
+    if (activeFilters.length === 0) return base;
     const filtered = new Map<string, DayData>();
-    calData.forEach((data, date) => {
+    base.forEach((data, date) => {
       const show =
         (activeFilters.includes('due')  && data.due.length > 0) ||
         (activeFilters.includes('kept') && data.kept.length > 0) ||
@@ -181,7 +199,7 @@ export default function CalendarScreen() {
       if (show) filtered.set(date, data);
     });
     return filtered;
-  }, [calData, activeFilters]);
+  }, [calData, activeFilters, searchQuery]);
 
   const selectedData = selectedDate ? calData.get(selectedDate) : undefined;
 
@@ -200,15 +218,42 @@ export default function CalendarScreen() {
 
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         <BlurView intensity={60} tint="light" style={styles.header}>
-          <Text style={styles.headerTitle}>Calendar</Text>
-          <Text style={styles.headerSub}>
-            {promises.filter(p => {
-              const d = p.specificDate && /^\d{4}-\d{2}-\d{2}$/.test(p.specificDate)
-                ? p.specificDate
-                : p.keptAt ? isoDate(new Date(p.keptAt)) : isoDate(new Date(p.createdAt));
-              return d.startsWith(`${year}-${String(month+1).padStart(2,'0')}`);
-            }).length} promises this month
-          </Text>
+          {searchActive ? (
+            <View style={styles.searchRow}>
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search promises…"
+                placeholderTextColor={COLOURS.textMuted}
+                selectionColor={COLOURS.coffee2}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                autoFocus
+              />
+              <TouchableOpacity
+                style={styles.searchClose}
+                onPress={() => { setSearchActive(false); setSearchQuery(''); }}
+              >
+                <Text style={styles.searchCloseText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <>
+              <View style={{ flex: 1, alignItems: 'center' }}>
+                <Text style={styles.headerTitle}>Calendar</Text>
+                <Text style={styles.headerSub}>
+                  {promises.filter(p => {
+                    const d = p.specificDate && /^\d{4}-\d{2}-\d{2}$/.test(p.specificDate)
+                      ? p.specificDate
+                      : p.keptAt ? isoDate(new Date(p.keptAt)) : isoDate(new Date(p.createdAt));
+                    return d.startsWith(`${year}-${String(month+1).padStart(2,'0')}`);
+                  }).length} promises this month
+                </Text>
+              </View>
+              <TouchableOpacity style={styles.searchBtn} onPress={() => setSearchActive(true)}>
+                <Text style={styles.searchBtnText}>🔍</Text>
+              </TouchableOpacity>
+            </>
+          )}
         </BlurView>
 
         <ScrollView style={styles.main} contentContainerStyle={styles.mainContent} showsVerticalScrollIndicator={false}>
@@ -289,12 +334,19 @@ const styles = StyleSheet.create({
   root:     { flex: 1, backgroundColor: COLOURS.bg },
   safeArea: { flex: 1 },
   header: {
-    paddingHorizontal: 20, paddingVertical: 14, alignItems: 'center',
+    flexDirection: 'row', alignItems: 'center',
+    paddingHorizontal: 20, paddingVertical: 14,
     borderBottomWidth: 1, borderBottomColor: COLOURS.glassBorder,
     backgroundColor: Platform.OS === 'android' ? COLOURS.headerBg : 'transparent',
   },
   headerTitle: { fontFamily: FONTS.headingItalic, fontSize: SIZES.screenTitle, color: COLOURS.text },
   headerSub:   { fontFamily: FONTS.body, fontSize: SIZES.label, color: COLOURS.textDim, marginTop: 2 },
+  searchBtn:      { width: 38, height: 38, borderRadius: 12, backgroundColor: COLOURS.glass, borderWidth: 1, borderColor: COLOURS.glassBorder, alignItems: 'center', justifyContent: 'center' },
+  searchBtnText:  { fontSize: 16 },
+  searchRow:      { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  searchInput:    { flex: 1, paddingVertical: 9, paddingHorizontal: 14, backgroundColor: COLOURS.glass, borderWidth: 1, borderColor: COLOURS.glassBorder, borderRadius: 12, fontFamily: FONTS.body, fontSize: SIZES.bodySmall, color: COLOURS.text },
+  searchClose:    { width: 38, height: 38, borderRadius: 12, backgroundColor: COLOURS.glass, borderWidth: 1, borderColor: COLOURS.glassBorder, alignItems: 'center', justifyContent: 'center' },
+  searchCloseText:{ fontFamily: FONTS.bodyBold, fontSize: 14, color: COLOURS.coffee1 },
   main:        { flex: 1, paddingHorizontal: 12, paddingTop: 16 },
   mainContent: { paddingBottom: 100 },
   nav:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 },

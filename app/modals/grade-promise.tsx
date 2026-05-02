@@ -1,9 +1,10 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet,
-  PanResponder, GestureResponderEvent,
+  PanResponder, GestureResponderEvent, Animated,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
+import Svg, { Circle, Rect, Defs, Pattern } from 'react-native-svg';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { usePromises } from '../../storage/PromisesContext';
@@ -17,17 +18,12 @@ import {
   MODAL_HANDLE,
 } from '../../theme/modal';
 
-// ── LikertBar — tap or drag to set 1–5 ────────────────────────────────────
+// ── LikertBar ──────────────────────────────────────────────────────────────
 function LikertBar({
-  value,
-  onChange,
-  filledEmoji,
-  emptyEmoji,
+  value, onChange, filledEmoji, emptyEmoji,
 }: {
-  value:       number;
-  onChange:    (v: number) => void;
-  filledEmoji: string;
-  emptyEmoji?: string;   // if omitted, uses filledEmoji with reduced opacity
+  value: number; onChange: (v: number) => void;
+  filledEmoji: string; emptyEmoji?: string;
 }) {
   const rowRef = useRef<View>(null);
   const rowX   = useRef(0);
@@ -59,22 +55,89 @@ function LikertBar({
     >
       {[1, 2, 3, 4, 5].map(n => (
         <TouchableOpacity
-          key={n}
-          style={styles.pipBtn}
-          onPress={() => onChange(n)}
-          activeOpacity={0.7}
+          key={n} style={styles.pipBtn}
+          onPress={() => onChange(n)} activeOpacity={0.7}
         >
           {emptyEmoji ? (
-            <Text style={styles.pip}>
+            <Text style={[styles.pip, n <= value ? styles.pipActive : styles.pipInactive]}>
               {n <= value ? filledEmoji : emptyEmoji}
             </Text>
           ) : (
-            <Text style={[styles.pip, n > value && styles.pipFaded]}>
-              {filledEmoji}
-            </Text>
+            <Text style={[styles.pip, n > value && styles.pipFaded]}>{filledEmoji}</Text>
           )}
         </TouchableOpacity>
       ))}
+    </View>
+  );
+}
+
+// ── Celebration ────────────────────────────────────────────────────────────
+function Celebration({ bearScore, heartScore, onDone }: {
+  bearScore: number; heartScore: number; onDone: () => void;
+}) {
+  const scale = useRef(new Animated.Value(0.5)).current;
+  const opacity = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.spring(scale, { toValue: 1, friction: 4, tension: 60, useNativeDriver: true }),
+      Animated.timing(opacity, { toValue: 1, duration: 400, useNativeDriver: true }),
+    ]).start();
+  }, []);
+
+  return (
+    <View style={styles.celebrate}>
+      {/* Dot grid */}
+      <View style={StyleSheet.absoluteFill} pointerEvents="none">
+        <Svg width="100%" height="100%" style={StyleSheet.absoluteFill}>
+          <Defs>
+            <Pattern id="cgdots" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+              <Circle cx="1" cy="1" r="1" fill="rgba(111,78,55,0.18)" />
+            </Pattern>
+          </Defs>
+          <Rect x="0" y="0" width="100%" height="100%" fill="url(#cgdots)" />
+        </Svg>
+      </View>
+
+      <Animated.View style={{ transform: [{ scale }], opacity }}>
+        <Text style={styles.celebrateBear}>🐻</Text>
+      </Animated.View>
+
+      <Animated.View style={[styles.celebrateContent, { opacity }]}>
+        <Text style={styles.celebrateConfetti}>🎉 ✨ 🎊</Text>
+        <Text style={styles.celebrateTitle}>Promise kept!</Text>
+        <Text style={styles.celebrateSub}>
+          You said you would, and you did.{'\n'}That matters.
+        </Text>
+
+        {/* Score cards */}
+        <View style={styles.celebrateScores}>
+          <View style={styles.scoreCard}>
+            <Text style={styles.scoreEmoji}>🐻</Text>
+            <View style={styles.scorePips}>
+              {[1,2,3,4,5].map(n => (
+                <Text key={n} style={[styles.scorePip, n > bearScore && styles.pipFaded]}>🐻</Text>
+              ))}
+            </View>
+            <Text style={styles.scoreLabel}>how well</Text>
+          </View>
+          <View style={styles.scoreCard}>
+            <Text style={styles.scoreEmoji}>❤️</Text>
+            <View style={styles.scorePips}>
+              {[1,2,3,4,5].map(n => (
+                <Text key={n} style={styles.scorePip}>
+                  {n <= heartScore ? '❤️' : <Text style={styles.pipFaded}>🤍</Text>}
+                </Text>
+              ))}
+            </View>
+            <Text style={styles.scoreLabel}>how it felt</Text>
+          </View>
+        </View>
+
+        <TouchableOpacity style={styles.homeBtn} onPress={onDone}>
+          <Text style={styles.homeBtnText}>Back home 🏠</Text>
+        </TouchableOpacity>
+      </Animated.View>
     </View>
   );
 }
@@ -106,44 +169,16 @@ export default function GradePromiseModal() {
     setCelebrated(true);
   };
 
-  // ── Celebration ──────────────────────────────────────────────────────────
   if (celebrated) {
     return (
-      <View style={styles.celebrate}>
-        <Text style={styles.celebrateBear}>🐻</Text>
-        <Text style={styles.celebrateConfetti}>🎉 ✨ 🎊</Text>
-        <Text style={styles.celebrateTitle}>Promise kept!</Text>
-        <Text style={styles.celebrateSub}>
-          You said you would, and you did.{'\n'}That matters.
-        </Text>
-        <View style={styles.celebrateScores}>
-          <View style={styles.scoreCard}>
-            <Text style={styles.scoreLabel}>how well</Text>
-            <View style={styles.scorePips}>
-              {[1,2,3,4,5].map(n => (
-                <Text key={n} style={[styles.scorePip, n > bearScore && styles.pipFaded]}>🐻</Text>
-              ))}
-            </View>
-          </View>
-          <View style={styles.scoreCard}>
-            <Text style={styles.scoreLabel}>how it felt</Text>
-            <View style={styles.scorePips}>
-              {[1,2,3,4,5].map(n => (
-                <Text key={n} style={styles.scorePip}>
-                  {n <= heartScore ? '❤️' : <Text style={styles.pipFaded}>🤍</Text>}
-                </Text>
-              ))}
-            </View>
-          </View>
-        </View>
-        <TouchableOpacity style={styles.homeBtn} onPress={() => router.back()}>
-          <Text style={styles.homeBtnText}>Back home 🏠</Text>
-        </TouchableOpacity>
-      </View>
+      <Celebration
+        bearScore={bearScore}
+        heartScore={heartScore}
+        onDone={() => router.back()}
+      />
     );
   }
 
-  // ── Grading sheet ─────────────────────────────────────────────────────────
   return (
     <View style={styles.overlay}>
       <TouchableOpacity style={styles.dismissArea} activeOpacity={1} onPress={() => router.back()} />
@@ -160,7 +195,7 @@ export default function GradePromiseModal() {
             <Text style={styles.recapTitle}>{promise.text}</Text>
           </View>
 
-          {/* Bears — how well */}
+          {/* Bears */}
           <Text style={styles.label}>How well did you keep it?</Text>
           <View style={styles.scaleBlock}>
             <LikertBar value={bearScore} onChange={setBearScore} filledEmoji="🐻" />
@@ -170,14 +205,12 @@ export default function GradePromiseModal() {
             </View>
           </View>
 
-          {/* Hearts — how it felt */}
+          {/* Hearts */}
           <Text style={styles.label}>How did it feel?</Text>
           <View style={styles.scaleBlock}>
             <LikertBar
-              value={heartScore}
-              onChange={setHeartScore}
-              filledEmoji="❤️"
-              emptyEmoji="🤍"
+              value={heartScore} onChange={setHeartScore}
+              filledEmoji="❤️" emptyEmoji="🤍"
             />
             <View style={styles.hints}>
               <Text style={styles.hint}>relieved</Text>
@@ -199,7 +232,6 @@ export default function GradePromiseModal() {
             multiline
           />
 
-          {/* Actions */}
           <View style={styles.actions}>
             <TouchableOpacity style={styles.cancelBtn} onPress={() => router.back()}>
               <Text style={styles.cancelText}>Cancel</Text>
@@ -225,7 +257,6 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.headingItalic, fontSize: SIZES.screenTitle,
     color: COLOURS.text, marginBottom: 20,
   },
-
   recap: {
     backgroundColor: GLASS_BG, borderRadius: RADIUS.card,
     padding: 14, marginBottom: 22,
@@ -242,7 +273,6 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.body, fontSize: SIZES.body,
     fontWeight: '500', color: COLOURS.text, lineHeight: 26,
   },
-
   label: {
     fontFamily: FONTS.bodyBold, fontSize: SIZES.label,
     letterSpacing: 0.8, textTransform: 'uppercase', color: COLOURS.text,
@@ -252,18 +282,18 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.body, fontSize: SIZES.label,
     textTransform: 'none', letterSpacing: 0, color: COLOURS.textMuted,
   },
-
   scaleBlock: { marginBottom: 20 },
   pipsRow:    { flexDirection: 'row', justifyContent: 'space-between' },
-  pipBtn:     { flex: 1, alignItems: 'center', paddingVertical: 8 },
-  pip:        { fontSize: SIZES.emoji, lineHeight: SIZES.emoji + 8 },
+  pipBtn:     { flex: 1, alignItems: 'center', paddingVertical: 10 },
+  pip:        { fontSize: 36, lineHeight: 44 },
+  pipActive:  { fontSize: 40, lineHeight: 48 },
+  pipInactive:{ fontSize: 34, lineHeight: 42 },
   pipFaded:   { opacity: 0.22 },
   hints: {
     flexDirection: 'row', justifyContent: 'space-between',
     marginTop: 4, paddingHorizontal: 4,
   },
   hint: { fontFamily: FONTS.body, fontSize: SIZES.label, color: COLOURS.textDim },
-
   glassInput: {
     backgroundColor: GLASS_BG, borderRadius: 16,
     padding: 14, fontFamily: FONTS.body, fontSize: SIZES.body,
@@ -271,7 +301,6 @@ const styles = StyleSheet.create({
     shadowColor: '#6F4E37', shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.10, shadowRadius: 8, elevation: 3,
   },
-
   actions: { flexDirection: 'row', gap: 10, marginTop: 6, marginBottom: 4 },
   cancelBtn: {
     paddingVertical: 16, paddingHorizontal: 24,
@@ -287,36 +316,41 @@ const styles = StyleSheet.create({
   keepText:       { fontFamily: FONTS.bodyBold, fontSize: SIZES.body, color: COLOURS.done },
   keepTextItalic: { fontFamily: FONTS.headingItalic, fontSize: SIZES.body, color: COLOURS.done },
 
+  // ── Celebration ──
   celebrate: {
     flex: 1, backgroundColor: COLOURS.bg,
     alignItems: 'center', justifyContent: 'center', padding: 32,
   },
-  celebrateBear:     { fontSize: 110, marginBottom: 8 },
-  celebrateConfetti: { fontSize: 30, letterSpacing: 4, marginBottom: 20 },
+  celebrateContent: { alignItems: 'center', width: '100%' },
+  celebrateBear:     { fontSize: 120, marginBottom: 4 },
+  celebrateConfetti: { fontSize: 28, letterSpacing: 6, marginBottom: 16 },
   celebrateTitle: {
-    fontFamily: FONTS.headingItalic, fontSize: SIZES.screenTitle,
-    color: COLOURS.text, marginBottom: 8,
+    fontFamily: FONTS.headingItalic, fontSize: 36,
+    color: COLOURS.text, marginBottom: 10,
   },
   celebrateSub: {
     fontFamily: FONTS.body, fontSize: SIZES.body,
     color: COLOURS.textMuted, textAlign: 'center', lineHeight: 26,
-    marginBottom: 28, maxWidth: 280,
+    marginBottom: 32, maxWidth: 280,
   },
-  celebrateScores: { flexDirection: 'row', gap: 16, marginBottom: 32 },
+  celebrateScores: { flexDirection: 'row', gap: 14, marginBottom: 36, width: '100%' },
   scoreCard: {
-    backgroundColor: GLASS_BG, borderWidth: 1, borderColor: COLOURS.glassBorder,
-    borderRadius: RADIUS.card, padding: 16, alignItems: 'center', gap: 8,
-    shadowColor: '#6F4E37', shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.10, shadowRadius: 8, elevation: 3,
+    flex: 1,
+    backgroundColor: 'rgba(255,255,255,0.80)',
+    borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.90)',
+    borderRadius: 24, padding: 18, alignItems: 'center', gap: 10,
+    shadowColor: '#6F4E37', shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.10, shadowRadius: 16, elevation: 4,
   },
+  scoreEmoji: { fontSize: 32 },
   scoreLabel: {
     fontFamily: FONTS.bodyBold, fontSize: SIZES.label,
     letterSpacing: 0.8, textTransform: 'uppercase', color: COLOURS.textMuted,
   },
   scorePips: { flexDirection: 'row', gap: 2 },
-  scorePip:  { fontSize: SIZES.body },
+  scorePip:  { fontSize: SIZES.bodySmall },
   homeBtn: {
-    paddingVertical: 16, paddingHorizontal: 40,
+    alignSelf: 'stretch', paddingVertical: 18, alignItems: 'center',
     backgroundColor: CHIP_BG, borderRadius: 20, ...chipShadow,
   },
   homeBtnText: { fontFamily: FONTS.bodyBold, fontSize: SIZES.body, color: COLOURS.coffee1 },
