@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useMemo } from 'react';
+import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, ScrollView,
   StyleSheet, PanResponder, GestureResponderEvent, Platform,
@@ -72,6 +72,36 @@ export default function AddPromiseModal() {
   const { id }  = useLocalSearchParams<{ id?: string }>();
   const insets  = useSafeAreaInsets();
   const { addPromise, updatePromise, promises } = usePromises();
+
+  // Inject web-only CSS fixes at mount time
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    const id = 'bwm-input-fix';
+    if (document.getElementById(id)) return;
+    const style = document.createElement('style');
+    style.id = id;
+    style.textContent = `
+      textarea, input[type=text], input[type=date] {
+        box-sizing: border-box !important;
+        max-width: 100% !important;
+        overflow: hidden !important;
+        outline: none !important;
+      }
+      textarea:focus, input:focus {
+        outline: none !important;
+        box-shadow: 0 0 0 2px rgba(111,78,55,0.30) !important;
+      }
+      input[type=date] {
+        accent-color: #6F4E37 !important;
+        color-scheme: light;
+      }
+      input[type=date]::-webkit-calendar-picker-indicator {
+        filter: sepia(1) saturate(4) hue-rotate(330deg) brightness(0.55);
+        cursor: pointer;
+      }
+    `;
+    document.head.appendChild(style);
+  }, []);
 
   const existing = useMemo(
     () => (id ? promises.find(p => p.id === id) ?? null : null),
