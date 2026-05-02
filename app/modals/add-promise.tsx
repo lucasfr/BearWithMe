@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useMemo } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, ScrollView,
-  StyleSheet, PanResponder, GestureResponderEvent,
+  StyleSheet, PanResponder, GestureResponderEvent, Platform,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { BlurView } from 'expo-blur';
@@ -228,14 +228,39 @@ export default function AddPromiseModal() {
           )}
 
           {showDate && showPicker && (
-            <DateTimePicker
-              value={specificDate}
-              mode="date"
-              display="spinner"
-              onChange={(_, date) => { if (date) setSpecificDate(date); }}
-              textColor={COLOURS.text}
-              accentColor={COLOURS.coffee1}
-            />
+            Platform.OS === 'web' ? (
+              // Web fallback — native HTML date input
+              <View style={styles.webDateWrapper}>
+                {/* @ts-ignore */}
+                <input
+                  type="date"
+                  value={isoDate(specificDate)}
+                  onChange={(e: any) => {
+                    if (e.target.value) setSpecificDate(new Date(e.target.value + 'T12:00:00'));
+                  }}
+                  style={{
+                    width: '100%', padding: '12px 16px',
+                    fontFamily: 'inherit', fontSize: '16px',
+                    color: COLOURS.text,
+                    backgroundColor: 'rgba(255,255,255,0.72)',
+                    border: '1px solid rgba(166,123,91,0.3)',
+                    borderRadius: '14px',
+                    outline: 'none',
+                    accentColor: COLOURS.coffee1,
+                    boxSizing: 'border-box',
+                  }}
+                />
+              </View>
+            ) : (
+              <DateTimePicker
+                value={specificDate}
+                mode="date"
+                display="spinner"
+                onChange={(_, date) => { if (date) setSpecificDate(date); }}
+                textColor={COLOURS.text}
+                accentColor={COLOURS.coffee1}
+              />
+            )
           )}
 
           <Text style={styles.label}>
@@ -329,11 +354,13 @@ const styles = StyleSheet.create({
   dateLabelRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     backgroundColor: CHIP_ACTIVE_BG, borderRadius: 14,
-    paddingVertical: 12, paddingHorizontal: 16, marginBottom: 8,
+    paddingVertical: 14, paddingHorizontal: 18, marginBottom: 8,
+    borderWidth: 1, borderColor: COLOURS.coffee2,
     ...chipShadow,
   },
-  dateLabelText: { fontFamily: FONTS.bodyBold, fontSize: SIZES.bodySmall, color: COLOURS.coffee1 },
-  dateLabelEdit: { fontFamily: FONTS.body, fontSize: SIZES.label, color: COLOURS.coffee2 },
+  dateLabelText: { fontFamily: FONTS.bodyBold, fontSize: SIZES.body, color: COLOURS.coffee1 },
+  dateLabelEdit: { fontFamily: FONTS.bodyBold, fontSize: SIZES.bodySmall, color: COLOURS.coffee1, opacity: 0.7 },
+  webDateWrapper: { marginBottom: 8, width: '100%' },
 
   actions: { flexDirection: 'row', gap: 10, marginTop: 6, marginBottom: 4 },
   cancelBtn: {

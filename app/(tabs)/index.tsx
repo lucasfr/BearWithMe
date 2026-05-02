@@ -408,9 +408,11 @@ export default function HomeScreen() {
         <ScrollView style={styles.main} contentContainerStyle={styles.mainContent} showsVerticalScrollIndicator={false}>
           {!hasPromises ? (
             <View style={styles.emptyState}>
-              <Text style={styles.emptyBear}>🐻</Text>
-              <Text style={styles.emptyTitle}>No promises yet</Text>
-              <Text style={styles.emptySub}>{'Tap + to log your first promise.\nYou said you would. Bear with me.'}</Text>
+              <View style={styles.emptyCard}>
+                <Text style={styles.emptyBear}>🐻</Text>
+                <Text style={styles.emptyTitle}>No promises yet</Text>
+                <Text style={styles.emptySub}>{'Tap + to log your first promise.\nYou said you would. Bear with me.'}</Text>
+              </View>
             </View>
           ) : (
             <>
@@ -535,8 +537,16 @@ const styles = StyleSheet.create({
   selectCheck:      { color: '#fff', fontSize: 13, fontWeight: '700' },
   main:        { flex: 1, paddingHorizontal: 14, paddingTop: 12 },
   mainContent: { paddingBottom: 140 },
-  emptyState: { alignItems: 'center', marginTop: 80, paddingHorizontal: 32, gap: 12 },
+  emptyState: { alignItems: 'center', marginTop: 80, paddingHorizontal: 32, gap: 20 },
   emptyBear:  { fontSize: 64 },
+  emptyCard: {
+    backgroundColor: 'rgba(255,255,255,0.80)',
+    borderRadius: 28, padding: 28, alignItems: 'center',
+    borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.90)',
+    shadowColor: '#6F4E37', shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.12, shadowRadius: 18, elevation: 8,
+    width: '100%', gap: 10,
+  },
   emptyTitle: { fontFamily: FONTS.heading, fontSize: SIZES.cardTitle, color: COLOURS.text },
   emptySub:   { fontFamily: FONTS.body, fontSize: SIZES.body, color: COLOURS.textMuted, textAlign: 'center', lineHeight: 24 },
   filterRow: { flexDirection: 'row', gap: 8, marginBottom: 14 },
