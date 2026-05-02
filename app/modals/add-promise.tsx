@@ -302,9 +302,13 @@ export default function AddPromiseModal() {
 const styles = StyleSheet.create({
   overlay:     { flex: 1, justifyContent: 'flex-end' },
   dismissArea: { flex: 1 },
+  titleRow: {
+    flexDirection: 'row', alignItems: 'center',
+    justifyContent: 'space-between', marginBottom: 24,
+  },
   title: {
     fontFamily: FONTS.headingItalic, fontSize: SIZES.screenTitle,
-    color: COLOURS.text, marginBottom: 24,
+    color: COLOURS.text, flex: 1,
   },
   label: {
     fontFamily: FONTS.bodyBold, fontSize: SIZES.label,
@@ -323,7 +327,7 @@ const styles = StyleSheet.create({
     ...(Platform.OS === 'web' ? { minHeight: 44, maxHeight: 120 } : {}),
     ...inputShadow,
   },
-  flameRow:   { flexDirection: 'row', justifyContent: 'center', gap: 4, marginBottom: 18 },
+  flameRow:   { flexDirection: 'row', alignItems: 'center', gap: 2, marginBottom: 0 },
   flamePip:   { padding: Platform.OS === 'web' ? 4 : 8 },
   flameEmoji: { fontSize: Platform.OS === 'web' ? 24 : SIZES.emoji, lineHeight: Platform.OS === 'web' ? 32 : SIZES.emoji + 8 },
   flameFaded: { opacity: 0.22 },
