@@ -9,7 +9,7 @@ export default function Root({ children }: { children: React.ReactNode }) {
         <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
         <meta
           name="viewport"
-          content="width=device-width, initial-scale=1, shrink-to-fit=no"
+          content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover"
         />
 
         {/* PWA manifest */}
@@ -27,6 +27,21 @@ export default function Root({ children }: { children: React.ReactNode }) {
 
         {/* Scroll reset */}
         <ScrollViewStyleReset />
+
+        {/* iOS PWA safe area */}
+        <style>{`
+          body {
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+            padding-left: env(safe-area-inset-left);
+            padding-right: env(safe-area-inset-right);
+            background-color: #F5EFE6;
+          }
+          #root {
+            height: 100vh;
+            height: 100dvh;
+          }
+        `}</style>
       </head>
       <body>{children}</body>
     </html>
