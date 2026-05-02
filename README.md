@@ -131,6 +131,8 @@ Open in Chrome — the install prompt will appear in the address bar.
 
 All modal surfaces share consistent tokens from `theme/modal.ts` — `MODAL_GLASS_BG`, `MODAL_CHIP_BG`, `MODAL_HANDLE`, `MODAL_SHEET` — ensuring visual consistency across every sheet and pop-up.
 
+**Zelda visual language** — the urgency flame bar and grading screens borrow from the *Legend of Zelda* heart container system: icons packed tightly side by side, fading as the value decreases, filling left to right on tap or drag. Three flames for urgency. Five bears for how well. Five hearts for how it felt. Familiar, tactile, zero learning curve.
+
 ---
 
 ## 📦 Dependencies
