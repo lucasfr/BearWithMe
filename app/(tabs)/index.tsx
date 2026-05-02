@@ -495,7 +495,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1, borderBottomColor: COLOURS.glassBorder,
     backgroundColor: Platform.OS === 'android' ? COLOURS.headerBg : 'transparent',
   },
-  logoBlock: { width: 72, alignItems: 'center', gap: 2 },
+  logoBlock: { alignItems: 'center', gap: 2, flexShrink: 0 },
   bear:      { fontSize: 36, lineHeight: 38 },
   titleSub:  { flexDirection: 'row', alignItems: 'center', gap: 6 },
   checkbox: {
