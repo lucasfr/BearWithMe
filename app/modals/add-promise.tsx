@@ -199,7 +199,7 @@ export default function AddPromiseModal() {
                   onPress={() => {
                     if (key === 'specific') {
                       setShowDate(true);
-                      setShowPicker(true);
+                      setShowPicker(true); // open immediately
                     } else {
                       setFuzzy(key);
                       setShowDate(false);
@@ -216,20 +216,8 @@ export default function AddPromiseModal() {
           </View>
 
           {/* When specific is selected: show date label + inline picker */}
-          {showDate && (
-            <TouchableOpacity
-              style={styles.dateLabelRow}
-              onPress={() => setShowPicker(p => !p)}
-              activeOpacity={0.75}
-            >
-              <Text style={styles.dateLabelText}>📅 {dateLabel}</Text>
-              <Text style={styles.dateLabelEdit}>{showPicker ? 'done ✓' : 'change'}</Text>
-            </TouchableOpacity>
-          )}
-
           {showDate && showPicker && (
             Platform.OS === 'web' ? (
-              // Web fallback — native HTML date input
               <View style={styles.webDateWrapper}>
                 {/* @ts-ignore */}
                 <input
@@ -261,6 +249,17 @@ export default function AddPromiseModal() {
                 accentColor={COLOURS.coffee1}
               />
             )
+          )}
+
+          {showDate && (
+            <TouchableOpacity
+              style={styles.dateLabelRow}
+              onPress={() => setShowPicker(p => !p)}
+              activeOpacity={0.75}
+            >
+              <Text style={styles.dateLabelText}>📅 {dateLabel}</Text>
+              <Text style={styles.dateLabelEdit}>{showPicker ? 'done ✓' : 'change'}</Text>
+            </TouchableOpacity>
           )}
 
           <Text style={styles.label}>
