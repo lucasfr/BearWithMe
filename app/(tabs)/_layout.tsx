@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMemo } from 'react';
 import { COLOURS } from '../../theme/colours';
@@ -52,22 +52,27 @@ const profileOptions  = { tabBarLabel: 'Profile',  tabBarIcon: renderProfile };
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
 
-  // screenOptions is memoized — only changes when insets.bottom changes
-  const screenOptions = useMemo(() => ({
-    headerShown: false,
-    tabBarStyle: {
-      position: 'absolute' as const,
-      backgroundColor: 'rgba(245,239,230,0.92)',
-      borderTopWidth: 1,
-      borderTopColor: COLOURS.glassBorder,
-      height: 60 + insets.bottom,
-      paddingBottom: insets.bottom,
-      paddingTop: 8,
-    },
-    tabBarActiveTintColor:   COLOURS.coffee1,
-    tabBarInactiveTintColor: COLOURS.textDim,
-    tabBarLabelStyle: styles.tabLabel,
-  }), [insets.bottom]);
+  const screenOptions = useMemo(() => {
+    // On web PWA, insets.bottom is 0 — use env() for the home indicator
+    const bottomPad = Platform.OS === 'web'
+      ? 16
+      : insets.bottom;
+    return {
+      headerShown: false,
+      tabBarStyle: {
+        position: 'absolute' as const,
+        backgroundColor: 'rgba(245,239,230,0.92)',
+        borderTopWidth: 1,
+        borderTopColor: COLOURS.glassBorder,
+        height: 60 + bottomPad,
+        paddingBottom: bottomPad,
+        paddingTop: 8,
+      },
+      tabBarActiveTintColor:   COLOURS.coffee1,
+      tabBarInactiveTintColor: COLOURS.textDim,
+      tabBarLabelStyle: styles.tabLabel,
+    };
+  }, [insets.bottom]);
 
   return (
     <Tabs screenOptions={screenOptions}>
