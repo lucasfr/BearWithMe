@@ -29,7 +29,7 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/icons/favicon.ico",
+      "favicon": "./assets/images/icon.png",
       "name": "Bear with Me",
       "shortName": "Bear with Me",
       "description": "A quiet promise tracker for people who care deeply and sometimes struggle to follow through.",
