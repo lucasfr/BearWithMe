@@ -1,14 +1,16 @@
 import { useState, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  ScrollView, Dimensions,
+  ScrollView, Dimensions, TextInput, KeyboardAvoidingView, Platform,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, { Circle, Rect, Defs, Pattern } from 'react-native-svg';
 import { COLOURS } from '../theme/colours';
 import { FONTS, SIZES, RADIUS } from '../theme/typography';
 import { MODAL_CHIP_BG, MODAL_CHIP_SHADOW } from '../theme/modal';
 
 const { width: W } = Dimensions.get('window');
+const NAME_KEY = '@bwm:userName';
 
 const SLIDES = [
   {
@@ -44,22 +46,35 @@ interface OnboardingProps {
 
 export default function Onboarding({ onDone }: OnboardingProps) {
   const [page, setPage] = useState(0);
+  const [name, setName] = useState('');
   const scrollRef = useRef<ScrollView>(null);
+
+  const totalPages = SLIDES.length + 1; // slides + name screen
+  const isNameScreen = page === SLIDES.length;
+  const isLast = page === totalPages - 1;
 
   const goTo = (index: number) => {
     setPage(index);
     scrollRef.current?.scrollTo({ x: index * W, animated: true });
   };
 
-  const next = () => {
-    if (page < SLIDES.length - 1) goTo(page + 1);
-    else onDone();
+  const next = async () => {
+    if (!isLast) {
+      goTo(page + 1);
+    } else {
+      // Save name if provided then finish
+      if (name.trim()) {
+        await AsyncStorage.setItem(NAME_KEY, name.trim());
+      }
+      onDone();
+    }
   };
 
-  const isLast = page === SLIDES.length - 1;
-
   return (
-    <View style={styles.root}>
+    <KeyboardAvoidingView
+      style={styles.root}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
 
       {/* Dot grid */}
       <View style={StyleSheet.absoluteFill} pointerEvents="none">
@@ -74,7 +89,7 @@ export default function Onboarding({ onDone }: OnboardingProps) {
       </View>
 
       {/* Skip */}
-      {!isLast && (
+      {page < SLIDES.length - 1 && (
         <TouchableOpacity style={styles.skip} onPress={onDone} activeOpacity={0.7}>
           <Text style={styles.skipText}>skip</Text>
         </TouchableOpacity>
@@ -89,19 +104,38 @@ export default function Onboarding({ onDone }: OnboardingProps) {
         scrollEnabled={false}
         style={{ flex: 1 }}
       >
+        {/* Content slides */}
         {SLIDES.map((slide, i) => (
           <View key={i} style={styles.slide}>
-
             <Text style={styles.emoji}>{slide.emoji}</Text>
             <Text style={styles.title}>{slide.title}</Text>
-
-            {/* Glass card — matches easter egg exactly */}
             <View style={styles.card}>
               <Text style={styles.body}>{slide.body}</Text>
             </View>
-
           </View>
         ))}
+
+        {/* Name screen */}
+        <View style={styles.slide}>
+          <Text style={styles.emoji}>👋</Text>
+          <Text style={styles.title}>What should I call you?</Text>
+          <View style={styles.card}>
+            <Text style={styles.nameHint}>
+              This is just for your greeting on the home screen. You can change it any time in your profile.
+            </Text>
+            <TextInput
+              style={styles.nameInput}
+              placeholder="Your name…"
+              placeholderTextColor={COLOURS.textDim}
+              selectionColor={COLOURS.coffee2}
+              value={name}
+              onChangeText={setName}
+              autoCapitalize="words"
+              returnKeyType="done"
+              onSubmitEditing={next}
+            />
+          </View>
+        </View>
       </ScrollView>
 
       {/* Bottom */}
@@ -109,22 +143,25 @@ export default function Onboarding({ onDone }: OnboardingProps) {
 
         {/* Dot indicators */}
         <View style={styles.dots}>
-          {SLIDES.map((_, i) => (
+          {Array.from({ length: totalPages }).map((_, i) => (
             <TouchableOpacity key={i} onPress={() => goTo(i)} activeOpacity={0.7}>
               <View style={[styles.dot, i === page && styles.dotActive]} />
             </TouchableOpacity>
           ))}
         </View>
 
-        {/* Button — matches egg.btn */}
+        {/* Button */}
         <TouchableOpacity style={styles.btn} onPress={next} activeOpacity={0.85}>
           <Text style={styles.btnText}>
-            {isLast ? 'Let\'s go 🐻' : 'Next →'}
+            {isLast
+              ? (name.trim() ? `Let's go, ${name.trim()} 🐻` : 'Let\'s go 🐻')
+              : page === SLIDES.length - 1 ? 'Almost there →'
+              : 'Next →'}
           </Text>
         </TouchableOpacity>
 
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -170,7 +207,6 @@ const styles = StyleSheet.create({
     lineHeight: 38,
   },
 
-  // Matches egg.card exactly
   card: {
     backgroundColor: 'rgba(255,255,255,0.80)',
     borderRadius: 28,
@@ -184,6 +220,7 @@ const styles = StyleSheet.create({
     shadowRadius: 18,
     elevation: 8,
     width: '100%',
+    gap: 16,
   },
 
   body: {
@@ -191,6 +228,25 @@ const styles = StyleSheet.create({
     fontSize: SIZES.body,
     color: COLOURS.textMuted,
     lineHeight: 28,
+    textAlign: 'center',
+  },
+
+  // Name screen
+  nameHint: {
+    fontFamily: FONTS.body,
+    fontSize: SIZES.bodySmall,
+    color: COLOURS.textMuted,
+    lineHeight: 24,
+    textAlign: 'center',
+  },
+  nameInput: {
+    width: '100%',
+    fontFamily: FONTS.headingItalic,
+    fontSize: SIZES.cardTitle,
+    color: COLOURS.text,
+    borderBottomWidth: 2,
+    borderBottomColor: COLOURS.coffee2,
+    paddingVertical: 8,
     textAlign: 'center',
   },
 
@@ -215,7 +271,6 @@ const styles = StyleSheet.create({
     backgroundColor: COLOURS.coffee1,
   },
 
-  // Matches egg.btn exactly
   btn: {
     alignSelf: 'stretch',
     paddingVertical: 16,
