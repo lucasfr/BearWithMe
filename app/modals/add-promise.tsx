@@ -33,71 +33,69 @@ function WebDatePicker({ value, onChange }: { value: Date; onChange: (d: Date) =
 
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const days   = Array.from({ length: daysInMonth }, (_, i) => i + 1);
-  const months = MONTHS.map((m, i) => ({ label: m, value: i }));
   const years  = Array.from({ length: 10 }, (_, i) => today.getFullYear() + i);
 
   const update = (d: number, m: number, y: number) => {
     const clamped = Math.min(d, new Date(y, m + 1, 0).getDate());
+    setDay(clamped);
     onChange(new Date(y, m, clamped, 12));
+  };
+
+  const selectStyle = {
+    flex: 1,
+    padding: '11px 14px',
+    fontFamily: 'inherit',
+    fontSize: '14px',
+    fontWeight: '600',
+    color: '#6F4E37',
+    backgroundColor: 'rgba(255,255,255,0.60)',
+    border: '1px solid rgba(196,169,140,0.35)',
+    borderRadius: '999px',
+    outline: 'none',
+    boxShadow: '0 2px 8px rgba(111,78,55,0.10)',
+    cursor: 'pointer',
+    appearance: 'none' as const,
+    WebkitAppearance: 'none' as const,
+    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236F4E37' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")`,
+    backgroundRepeat: 'no-repeat',
+    backgroundPosition: 'right 12px center',
+    paddingRight: '32px',
   };
 
   return (
     <View style={wdp.row}>
-      {/* Day */}
-      <View style={wdp.col}>
-        <Text style={wdp.colLabel}>Day</Text>
-        <ScrollView style={wdp.scroll} showsVerticalScrollIndicator={false}>
-          {days.map(d => (
-            <TouchableOpacity
-              key={d} style={[wdp.item, d === day && wdp.itemActive]}
-              onPress={() => { setDay(d); update(d, month, year); }}
-            >
-              <Text style={[wdp.itemText, d === day && wdp.itemTextActive]}>{d}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
-      {/* Month */}
-      <View style={wdp.col}>
-        <Text style={wdp.colLabel}>Month</Text>
-        <ScrollView style={wdp.scroll} showsVerticalScrollIndicator={false}>
-          {months.map(m => (
-            <TouchableOpacity
-              key={m.value} style={[wdp.item, m.value === month && wdp.itemActive]}
-              onPress={() => { setMonth(m.value); update(day, m.value, year); }}
-            >
-              <Text style={[wdp.itemText, m.value === month && wdp.itemTextActive]}>{m.label}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
-      {/* Year */}
-      <View style={wdp.col}>
-        <Text style={wdp.colLabel}>Year</Text>
-        <ScrollView style={wdp.scroll} showsVerticalScrollIndicator={false}>
-          {years.map(y => (
-            <TouchableOpacity
-              key={y} style={[wdp.item, y === year && wdp.itemActive]}
-              onPress={() => { setYear(y); update(day, month, y); }}
-            >
-              <Text style={[wdp.itemText, y === year && wdp.itemTextActive]}>{y}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
+      {/* @ts-ignore */}
+      <select
+        value={day}
+        onChange={(e: any) => { const d = Number(e.target.value); setDay(d); update(d, month, year); }}
+        style={selectStyle}
+      >
+        {days.map(d => <option key={d} value={d}>{d}</option>)}
+      </select>
+      {/* @ts-ignore */}
+      <select
+        value={month}
+        onChange={(e: any) => { const m = Number(e.target.value); setMonth(m); update(day, m, year); }}
+        style={selectStyle}
+      >
+        {MONTHS.map((label, i) => <option key={i} value={i}>{label}</option>)}
+      </select>
+      {/* @ts-ignore */}
+      <select
+        value={year}
+        onChange={(e: any) => { const y = Number(e.target.value); setYear(y); update(day, month, y); }}
+        style={selectStyle}
+      >
+        {Array.from({ length: 10 }, (_, i) => today.getFullYear() + i).map(y => (
+          <option key={y} value={y}>{y}</option>
+        ))}
+      </select>
     </View>
   );
 }
 
 const wdp = StyleSheet.create({
-  row:           { flexDirection: 'row', gap: 8, marginBottom: 8 },
-  col:           { flex: 1, backgroundColor: 'rgba(166,123,91,0.10)', borderRadius: 14, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(166,123,91,0.25)' },
-  colLabel:      { fontFamily: FONTS.bodyBold, fontSize: 10, letterSpacing: 0.8, textTransform: 'uppercase', color: COLOURS.coffee2, textAlign: 'center', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(166,123,91,0.20)' },
-  scroll:        { maxHeight: 160 },
-  item:          { paddingVertical: 10, alignItems: 'center' },
-  itemActive:    { backgroundColor: COLOURS.coffee1 },
-  itemText:      { fontFamily: FONTS.body, fontSize: SIZES.bodySmall, color: COLOURS.textMuted },
-  itemTextActive:{ fontFamily: FONTS.bodyBold, fontSize: SIZES.bodySmall, color: '#fff' },
+  row: { flexDirection: 'row', gap: 8, marginBottom: 8 },
 });
 
 // ── FlameBar ───────────────────────────────────────────────────────────────
