@@ -156,7 +156,7 @@ export default function GradePromiseModal() {
 
           {/* Recap */}
           <View style={styles.recap}>
-            <Text style={styles.recapLabel}>✓ marking as kept</Text>
+            <Text style={styles.recapLabel}>✅ marking as kept</Text>
             <Text style={styles.recapTitle}>{promise.text}</Text>
           </View>
 

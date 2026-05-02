@@ -62,7 +62,7 @@ export default function ProfileScreen() {
 
   const STATS = [
     { label: 'Made',     value: String(total),    emoji: '📝' },
-    { label: 'Kept',     value: String(kept),      emoji: '✓'  },
+    { label: 'Kept',     value: String(kept),      emoji: '✅'  },
     { label: 'Pending',  value: String(pending),   emoji: '⏳' },
     { label: 'Rate',     value: `${keepRate}%`,    emoji: '📊' },
     { label: 'How well', value: avg(bearScores),   emoji: '🐻' },
@@ -162,7 +162,7 @@ export default function ProfileScreen() {
           {[
             ['📝', 'Log a promise', 'Add what you committed to, who you told, and how urgent it feels.'],
             ['🔥', 'Set urgency', 'Drag the flame bar — from a gentle nudge to a genuine deadline.'],
-            ['✓', 'Mark it done', 'When you follow through, grade it with bears and hearts.'],
+            ['✅', 'Mark it done', 'When you follow through, grade it with bears and hearts.'],
             ['🐻', 'Be honest', 'No streaks, no shame. Just a record of trying.'],
           ].map(([icon, title, body]) => (
             <View key={title} style={styles.howRow}>

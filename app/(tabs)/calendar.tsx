@@ -119,7 +119,7 @@ function DaySheet({ date, data, onClose, onPickDate }: {
                             <Text style={[ds.tag, ds.setDateTag]}>📆 set date</Text>
                           </TouchableOpacity>
                         )}
-                        {isKept && <Text style={ds.tag}>✓ kept</Text>}
+                        {isKept && <Text style={ds.tag}>✅ kept</Text>}
                         {isMade && <Text style={ds.tag}>📝 made</Text>}
                         {isKept && !!p.scoreHowWell && <Text style={ds.tag}>🐻 {p.scoreHowWell}/5</Text>}
                         {isKept && !!p.scoreHowFelt && <Text style={ds.tag}>❤️ {p.scoreHowFelt}/5</Text>}

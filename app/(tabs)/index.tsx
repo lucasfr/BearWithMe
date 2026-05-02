@@ -90,7 +90,7 @@ function CardActionSheet({ promise, onClose, onMarkDone, onEdit, onDelete }: {
             <>
               {promise.status !== 'kept' && (
                 <TouchableOpacity style={sheet.actionBtn} onPress={onMarkDone}>
-                  <Text style={sheet.actionIcon}>✓</Text>
+                  <Text style={sheet.actionIcon}>✅</Text>
                   <View><Text style={sheet.actionLabel}>Mark as done</Text><Text style={sheet.actionSub}>Grade how it went</Text></View>
                 </TouchableOpacity>
               )}
@@ -136,7 +136,7 @@ function PromiseCard({ promise, onPress, onLongPress, selectMode, selected, onTo
   let keptLabel: string | null = null;
   if (isKept && promise.keptAt) {
     const d = new Date(promise.keptAt);
-    keptLabel = `✓ Done ${d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}`;
+    keptLabel = `✅ Done ${d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}`;
   }
 
   const bearScore  = promise.scoreHowWell ?? 0;
