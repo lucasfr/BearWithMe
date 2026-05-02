@@ -184,16 +184,18 @@ export default function AddPromiseModal() {
         <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
 
           <Text style={styles.label}>The promise</Text>
-          <TextInput
-            style={[styles.glassInput, { minHeight: 64 }]}
-            placeholder="describe what you promised…"
-            placeholderTextColor={COLOURS.textMuted}
-            selectionColor={COLOURS.coffee2}
-            value={text}
-            onChangeText={setText}
-            multiline
-            autoFocus={!isEditing}
-          />
+          <View style={Platform.OS === 'web' ? styles.inputWrapper : undefined}>
+            <TextInput
+              style={[styles.glassInput, { minHeight: 64 }]}
+              placeholder="describe what you promised…"
+              placeholderTextColor={COLOURS.textMuted}
+              selectionColor={COLOURS.coffee2}
+              value={text}
+              onChangeText={setText}
+              multiline
+              autoFocus={!isEditing}
+            />
+          </View>
 
           <Text style={styles.label}>To whom</Text>
           <View style={styles.chipRow}>
@@ -208,14 +210,16 @@ export default function AddPromiseModal() {
                 </Text>
               </TouchableOpacity>
             ))}
-            <TextInput
-              style={styles.whoInput}
-              placeholder="someone else…"
-              placeholderTextColor={COLOURS.textMuted}
-              selectionColor={COLOURS.coffee2}
-              value={customWho}
-              onChangeText={v => { setCustomWho(v); if (v) setToWhom(''); }}
-            />
+            <View style={[Platform.OS === 'web' ? styles.whoInputWrapper : undefined, { flex: 1 }]}>
+              <TextInput
+                style={styles.whoInput}
+                placeholder="someone else…"
+                placeholderTextColor={COLOURS.textMuted}
+                selectionColor={COLOURS.coffee2}
+                value={customWho}
+                onChangeText={v => { setCustomWho(v); if (v) setToWhom(''); }}
+              />
+            </View>
           </View>
 
           <Text style={styles.label}>When</Text>
@@ -297,15 +301,17 @@ export default function AddPromiseModal() {
           <Text style={styles.label}>
             Context{'  '}<Text style={styles.labelOptional}>optional</Text>
           </Text>
-          <TextInput
-            style={[styles.glassInput, { fontStyle: 'italic', minHeight: 60 }]}
-            placeholder="any extra context to jog your memory…"
-            placeholderTextColor={COLOURS.textMuted}
-            selectionColor={COLOURS.coffee2}
-            value={context}
-            onChangeText={setContext}
-            multiline
-          />
+          <View style={Platform.OS === 'web' ? styles.inputWrapper : undefined}>
+            <TextInput
+              style={[styles.glassInput, { fontStyle: 'italic', minHeight: 60 }]}
+              placeholder="any extra context to jog your memory…"
+              placeholderTextColor={COLOURS.textMuted}
+              selectionColor={COLOURS.coffee2}
+              value={context}
+              onChangeText={setContext}
+              multiline
+            />
+          </View>
 
           <View style={styles.actions}>
             <TouchableOpacity style={styles.cancelBtn} onPress={() => router.back()}>
@@ -352,7 +358,8 @@ const styles = StyleSheet.create({
   glassInput: {
     backgroundColor: GLASS_BG, borderRadius: 16,
     padding: 14, fontFamily: FONTS.body, fontSize: SIZES.body,
-    color: COLOURS.text, marginBottom: 18,
+    color: COLOURS.text,
+    marginBottom: Platform.OS === 'web' ? 0 : 18,
     overflow: 'hidden',
     ...(Platform.OS === 'web' ? { minHeight: 44, maxHeight: 120 } : {}),
     ...inputShadow,
@@ -399,6 +406,8 @@ const styles = StyleSheet.create({
   dateLabelText: { fontFamily: FONTS.bodyBold, fontSize: SIZES.body, color: COLOURS.coffee1 },
   dateLabelEdit: { fontFamily: FONTS.bodyBold, fontSize: SIZES.bodySmall, color: COLOURS.coffee1, opacity: 0.7 },
   webDateWrapper: { marginBottom: 8, width: '100%' },
+  inputWrapper:    { overflow: 'hidden', borderRadius: 16, marginBottom: 18 },
+  whoInputWrapper: { overflow: 'hidden', borderRadius: RADIUS.pill },
 
   actions: { flexDirection: 'row', gap: 10, marginTop: 6, marginBottom: 4 },
   cancelBtn: {
