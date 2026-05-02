@@ -261,10 +261,10 @@ export default function CalendarScreen() {
           {/* Filter chips */}
           <View style={styles.filterRow}>
             {[
-              { key: 'due',  label: '🔥' },
-              { key: 'kept', label: '🐻' },
-              { key: 'felt', label: '❤️' },
-              { key: 'made', label: '📝' },
+              { key: 'due',  label: '🔥 due'  },
+              { key: 'kept', label: '🐻 kept' },
+              { key: 'felt', label: '❤️ felt' },
+              { key: 'made', label: '📝 made' },
             ].map(f => {
               const active = activeFilters.includes(f.key);
               return (
