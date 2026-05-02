@@ -22,6 +22,85 @@ import {
   MODAL_HANDLE,
 } from '../../theme/modal';
 
+// ── Web date picker (replaces native <input type=date> on web) ────────────
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function WebDatePicker({ value, onChange }: { value: Date; onChange: (d: Date) => void }) {
+  const today = new Date();
+  const [day,   setDay]   = useState(value.getDate());
+  const [month, setMonth] = useState(value.getMonth());
+  const [year,  setYear]  = useState(value.getFullYear());
+
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const days   = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+  const months = MONTHS.map((m, i) => ({ label: m, value: i }));
+  const years  = Array.from({ length: 10 }, (_, i) => today.getFullYear() + i);
+
+  const update = (d: number, m: number, y: number) => {
+    const clamped = Math.min(d, new Date(y, m + 1, 0).getDate());
+    onChange(new Date(y, m, clamped, 12));
+  };
+
+  return (
+    <View style={wdp.row}>
+      {/* Day */}
+      <View style={wdp.col}>
+        <Text style={wdp.colLabel}>Day</Text>
+        <ScrollView style={wdp.scroll} showsVerticalScrollIndicator={false}>
+          {days.map(d => (
+            <TouchableOpacity
+              key={d} style={[wdp.item, d === day && wdp.itemActive]}
+              onPress={() => { setDay(d); update(d, month, year); }}
+            >
+              <Text style={[wdp.itemText, d === day && wdp.itemTextActive]}>{d}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+      {/* Month */}
+      <View style={wdp.col}>
+        <Text style={wdp.colLabel}>Month</Text>
+        <ScrollView style={wdp.scroll} showsVerticalScrollIndicator={false}>
+          {months.map(m => (
+            <TouchableOpacity
+              key={m.value} style={[wdp.item, m.value === month && wdp.itemActive]}
+              onPress={() => { setMonth(m.value); update(day, m.value, year); }}
+            >
+              <Text style={[wdp.itemText, m.value === month && wdp.itemTextActive]}>{m.label}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+      {/* Year */}
+      <View style={wdp.col}>
+        <Text style={wdp.colLabel}>Year</Text>
+        <ScrollView style={wdp.scroll} showsVerticalScrollIndicator={false}>
+          {years.map(y => (
+            <TouchableOpacity
+              key={y} style={[wdp.item, y === year && wdp.itemActive]}
+              onPress={() => { setYear(y); update(day, month, y); }}
+            >
+              <Text style={[wdp.itemText, y === year && wdp.itemTextActive]}>{y}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+    </View>
+  );
+}
+
+const wdp = StyleSheet.create({
+  row:           { flexDirection: 'row', gap: 8, marginBottom: 8 },
+  col:           { flex: 1, backgroundColor: 'rgba(166,123,91,0.10)', borderRadius: 14, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(166,123,91,0.25)' },
+  colLabel:      { fontFamily: FONTS.bodyBold, fontSize: 10, letterSpacing: 0.8, textTransform: 'uppercase', color: COLOURS.coffee2, textAlign: 'center', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(166,123,91,0.20)' },
+  scroll:        { maxHeight: 160 },
+  item:          { paddingVertical: 10, alignItems: 'center' },
+  itemActive:    { backgroundColor: COLOURS.coffee1 },
+  itemText:      { fontFamily: FONTS.body, fontSize: SIZES.bodySmall, color: COLOURS.textMuted },
+  itemTextActive:{ fontFamily: FONTS.bodyBold, fontSize: SIZES.bodySmall, color: '#fff' },
+});
+
+// ── FlameBar ───────────────────────────────────────────────────────────────
 function FlameBar({ value, onChange }: { value: UrgencyLevel; onChange: (v: UrgencyLevel) => void }) {
   const rowRef = useRef<View>(null);
   const rowX   = useRef(0);
@@ -253,34 +332,9 @@ export default function AddPromiseModal() {
           {showDate && showPicker && (
             Platform.OS === 'web' ? (
               <View style={styles.webDateWrapper}>
-                {/* @ts-ignore */}
-                <input
-                  type="date"
-                  value={isoDate(specificDate)}
-                  onChange={(e: any) => {
-                    if (e.target.value) setSpecificDate(new Date(e.target.value + 'T12:00:00'));
-                  }}
-                  style={{
-                    width: '100%',
-                    padding: '14px 18px',
-                    fontFamily: 'inherit',
-                    fontSize: '17px',
-                    fontWeight: '600',
-                    color: '#6F4E37',
-                    backgroundColor: 'rgba(166,123,91,0.15)',
-                    border: '1.5px solid rgba(166,123,91,0.40)',
-                    borderRadius: '14px',
-                    outline: 'none',
-                    boxShadow: 'none',
-                    accentColor: '#6F4E37',
-                    colorScheme: 'light',
-                    boxSizing: 'border-box',
-                    overflow: 'hidden',
-                    display: 'block',
-                    cursor: 'pointer',
-                    WebkitAppearance: 'none',
-                    appearance: 'none',
-                  }}
+                <WebDatePicker
+                  value={specificDate}
+                  onChange={setSpecificDate}
                 />
               </View>
             ) : (
