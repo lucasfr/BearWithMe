@@ -327,9 +327,9 @@ const styles = StyleSheet.create({
     ...(Platform.OS === 'web' ? { minHeight: 44, maxHeight: 120 } : {}),
     ...inputShadow,
   },
-  flameRow:   { flexDirection: 'row', alignItems: 'center', gap: 2, marginBottom: 0 },
-  flamePip:   { padding: Platform.OS === 'web' ? 4 : 8 },
-  flameEmoji: { fontSize: Platform.OS === 'web' ? 24 : SIZES.emoji, lineHeight: Platform.OS === 'web' ? 32 : SIZES.emoji + 8 },
+  flameRow:   { flexDirection: 'row', alignItems: 'center', gap: 0, marginBottom: 0 },
+  flamePip:   { padding: Platform.OS === 'web' ? 2 : 4 },
+  flameEmoji: { fontSize: Platform.OS === 'web' ? 22 : 26, lineHeight: Platform.OS === 'web' ? 28 : 30 },
   flameFaded: { opacity: 0.22 },
 
   chipRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 18 },
