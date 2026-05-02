@@ -17,6 +17,25 @@ export default function Root({ children }: { children: React.ReactNode }) {
         {/* App-wide web overrides */}
         <link rel="stylesheet" href="/bwm.css" />
 
+        {/* Primary meta */}
+        <title>Bear with Me</title>
+        <meta name="description" content="A quiet promise tracker for people who care deeply and sometimes struggle to follow through. No streaks. No shame. Just a record of trying." />
+
+        {/* Open Graph — WhatsApp, Facebook, iMessage */}
+        <meta property="og:type"        content="website" />
+        <meta property="og:title"       content="Bear with Me 🐻" />
+        <meta property="og:description" content="A quiet promise tracker for people who care deeply and sometimes struggle to follow through. You said you would. That already counts." />
+        <meta property="og:image"       content="/og-image.png" />
+        <meta property="og:image:width"  content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt"   content="Bear with Me — a quiet promise tracker" />
+
+        {/* Twitter / X card */}
+        <meta name="twitter:card"        content="summary_large_image" />
+        <meta name="twitter:title"       content="Bear with Me 🐻" />
+        <meta name="twitter:description" content="A quiet promise tracker for people who care deeply and sometimes struggle to follow through. You said you would. That already counts." />
+        <meta name="twitter:image"       content="/og-image.png" />
+
         {/* iOS PWA — name and icon */}
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
