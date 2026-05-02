@@ -261,17 +261,25 @@ export default function AddPromiseModal() {
                     if (e.target.value) setSpecificDate(new Date(e.target.value + 'T12:00:00'));
                   }}
                   style={{
-                    width: '100%', padding: '14px 18px',
-                    fontFamily: 'inherit', fontSize: '17px',
+                    width: '100%',
+                    padding: '14px 18px',
+                    fontFamily: 'inherit',
+                    fontSize: '17px',
                     fontWeight: '600',
                     color: '#6F4E37',
                     backgroundColor: 'rgba(166,123,91,0.15)',
                     border: '1.5px solid rgba(166,123,91,0.40)',
                     borderRadius: '14px',
                     outline: 'none',
+                    boxShadow: 'none',
                     accentColor: '#6F4E37',
+                    colorScheme: 'light',
                     boxSizing: 'border-box',
+                    overflow: 'hidden',
+                    display: 'block',
                     cursor: 'pointer',
+                    WebkitAppearance: 'none',
+                    appearance: 'none',
                   }}
                 />
               </View>
@@ -405,7 +413,7 @@ const styles = StyleSheet.create({
   },
   dateLabelText: { fontFamily: FONTS.bodyBold, fontSize: SIZES.body, color: COLOURS.coffee1 },
   dateLabelEdit: { fontFamily: FONTS.bodyBold, fontSize: SIZES.bodySmall, color: COLOURS.coffee1, opacity: 0.7 },
-  webDateWrapper: { marginBottom: 8, width: '100%' },
+  webDateWrapper: { marginBottom: 8, width: '100%', overflow: 'hidden', borderRadius: 14 },
   inputWrapper:    { overflow: 'hidden', borderRadius: 16, marginBottom: 18 },
   whoInputWrapper: { overflow: 'hidden', borderRadius: RADIUS.pill },
 
