@@ -227,15 +227,17 @@ export default function AddPromiseModal() {
                     if (e.target.value) setSpecificDate(new Date(e.target.value + 'T12:00:00'));
                   }}
                   style={{
-                    width: '100%', padding: '12px 16px',
-                    fontFamily: 'inherit', fontSize: '16px',
-                    color: COLOURS.text,
-                    backgroundColor: 'rgba(255,255,255,0.72)',
-                    border: '1px solid rgba(166,123,91,0.3)',
+                    width: '100%', padding: '14px 18px',
+                    fontFamily: 'inherit', fontSize: '17px',
+                    fontWeight: '600',
+                    color: '#6F4E37',
+                    backgroundColor: 'rgba(166,123,91,0.15)',
+                    border: '1.5px solid rgba(166,123,91,0.40)',
                     borderRadius: '14px',
                     outline: 'none',
-                    accentColor: COLOURS.coffee1,
+                    accentColor: '#6F4E37',
                     boxSizing: 'border-box',
+                    cursor: 'pointer',
                   }}
                 />
               </View>
@@ -251,7 +253,7 @@ export default function AddPromiseModal() {
             )
           )}
 
-          {showDate && (
+          {showDate && Platform.OS !== 'web' && (
             <TouchableOpacity
               style={styles.dateLabelRow}
               onPress={() => setShowPicker(p => !p)}
