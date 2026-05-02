@@ -28,7 +28,7 @@ export default function Root({ children }: { children: React.ReactNode }) {
         {/* Scroll reset */}
         <ScrollViewStyleReset />
 
-        {/* iOS PWA safe area */}
+        {/* iOS PWA safe area + web input fixes */}
         <style>{`
           body {
             padding-top: env(safe-area-inset-top);
@@ -39,6 +39,17 @@ export default function Root({ children }: { children: React.ReactNode }) {
           #root {
             height: 100vh;
             height: 100dvh;
+          }
+          /* Remove blue browser focus ring — use app's own focus styles */
+          input:focus, textarea:focus, [contenteditable]:focus {
+            outline: none !important;
+            box-shadow: 0 0 0 2px rgba(111,78,55,0.35) !important;
+            border-color: rgba(111,78,55,0.50) !important;
+          }
+          /* Prevent inputs from overflowing their containers */
+          input, textarea {
+            box-sizing: border-box;
+            max-width: 100%;
           }
         `}</style>
       </head>
