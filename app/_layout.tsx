@@ -15,6 +15,20 @@ import { FONTS } from '../theme/typography';
 
 const ONBOARDING_KEY = '@bwm:onboardingDone';
 
+const SPLASH_TAGLINES = [
+  'Waking the bear... 🐾',
+  'Dusting off the paws... 🐾',
+  'The bear is stretching... 🐻',
+  'One moment, bear is thinking... 🐻',
+  'Getting ready to keep a promise... 🐾',
+  'Bear with us... 🐾',
+  'Poking the bear (gently)... 🐾',
+  'Bear incoming... 🐻',
+  'Almost there, we promise... 🐾',
+];
+
+const TAGLINE = SPLASH_TAGLINES[Math.floor(Math.random() * SPLASH_TAGLINES.length)];
+
 // Keep the native splash visible until we're ready
 SplashScreen.preventAutoHideAsync();
 
@@ -139,6 +153,9 @@ function CustomSplash() {
         </View>
         <Text style={splash.withMe}>with me</Text>
       </View>
+
+      {/* Random tagline */}
+      <Text style={splash.tagline}>{TAGLINE}</Text>
     </View>
   );
 }
@@ -173,5 +190,11 @@ const splash = StyleSheet.create({
     fontStyle: 'italic',
     color: COLOURS.coffee2,
     textDecorationLine: 'line-through',
+  },
+  tagline: {
+    fontFamily: FONTS.bodyItalic,
+    fontSize: 16,
+    color: COLOURS.textDim,
+    marginTop: 8,
   },
 });
