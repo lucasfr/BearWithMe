@@ -193,7 +193,7 @@ const splash = StyleSheet.create({
   },
   tagline: {
     fontFamily: FONTS.bodyItalic,
-    fontSize: 16,
+    fontSize: 22,
     color: COLOURS.textDim,
     marginTop: 8,
   },
