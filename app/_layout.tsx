@@ -16,15 +16,21 @@ import { FONTS } from '../theme/typography';
 const ONBOARDING_KEY = '@bwm:onboardingDone';
 
 const SPLASH_TAGLINES = [
+  'Counting 🔥🔥🔥...',
   'Waking the bear... 🐾',
+  'Bear incoming... 🐻',
+  'You said you would... 🐻',
+  'Almost there, we promise... 🐾',
+  'Bear with us... 🐾',
+  'One promise at a time... 🐾',
   'Dusting off the paws... 🐾',
+  'No streaks. No shame. Just bears. 🐻',
+  'Loading good intentions... 🐾',
+  'Promising to load quickly... 🐻',
   'The bear is stretching... 🐻',
   'One moment, bear is thinking... 🐻',
   'Getting ready to keep a promise... 🐾',
-  'Bear with us... 🐾',
   'Poking the bear (gently)... 🐾',
-  'Bear incoming... 🐻',
-  'Almost there, we promise... 🐾',
 ];
 
 const TAGLINE = SPLASH_TAGLINES[Math.floor(Math.random() * SPLASH_TAGLINES.length)];
