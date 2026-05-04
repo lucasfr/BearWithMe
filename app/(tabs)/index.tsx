@@ -13,9 +13,24 @@ import { COLOURS } from '../../theme/colours';
 import { FONTS, SIZES, RADIUS } from '../../theme/typography';
 import { MODAL_CHIP_BG, MODAL_CHIP_SHADOW, MODAL_HANDLE, MODAL_GLASS_BG } from '../../theme/modal';
 
+const SPLASH_TAGLINES = [
+  'Counting 🔥🔥🔥...', 'Waking the bear... 🐾', 'Bear incoming... 🐻',
+  'You said you would... 🐻', 'Almost there, we promise... 🐾', 'Bear with us... 🐾',
+  'One promise at a time... 🐾', 'Dusting off the paws... 🐾', 'No streaks. No shame. Just bears. 🐻',
+  'Loading good intentions... 🐾', 'Promising to load quickly... 🐻', 'The bear is stretching... 🐻',
+  'One moment, bear is thinking... 🐻', 'Getting ready to keep a promise... 🐾', 'Poking the bear (gently)... 🐾',
+  'Counting the kept ones... ✅', 'Bear on duty... 🐾', 'Hibernation over... 🐻',
+  'Bears keep their word... 🐻', 'Pawsing for a moment... 🐾', 'Executive function loading... 🐾',
+  'Small steps, big heart... 🐾❤️', 'Technically still loading... 🐾', 'The bear does not judge... 🐻',
+  'Bearly loading... 🐾', 'Not a productivity app, promise... 🐾',
+];
+const TAGLINE = SPLASH_TAGLINES[Math.floor(Math.random() * SPLASH_TAGLINES.length)];
+
 const EGG_TEXT = [
   'This app was made for people who care about others and sometimes struggle to follow through; not because they don\'t want to, but because their brain is just wired differently.',
-  'You said you would. That already counts.'
+  'You said you would. That already counts.',
+  '',
+  TAGLINE,
 ].join('\n\n');
 
 // ── SVG icons ─────────────────────────────────────────────────────────────

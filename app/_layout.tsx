@@ -96,7 +96,7 @@ export default function RootLayout() {
     if (fontsLoaded) {
       SplashScreen.hideAsync();
       // Keep splash visible for at least 2s
-      const t = setTimeout(() => setReady(true), 2000);
+      const t = setTimeout(() => setReady(true), 3500);
       return () => clearTimeout(t);
     }
   }, [fontsLoaded]);
