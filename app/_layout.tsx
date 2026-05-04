@@ -31,6 +31,17 @@ const SPLASH_TAGLINES = [
   'One moment, bear is thinking... 🐻',
   'Getting ready to keep a promise... 🐾',
   'Poking the bear (gently)... 🐾',
+  'Counting the kept ones... ✅',
+  'Bear on duty... 🐾',
+  'Hibernation over... 🐻',
+  'Bears keep their word... 🐻',
+  'Pawsing for a moment... 🐾',
+  'Executive function loading... 🐾',
+  'Small steps, big heart... 🐾❤️',
+  'Technically still loading... 🐾',
+  'The bear does not judge... 🐻',
+  'Bearly loading... 🐾',
+  'Not a productivity app, promise... 🐾',
 ];
 
 const TAGLINE = SPLASH_TAGLINES[Math.floor(Math.random() * SPLASH_TAGLINES.length)];
